@@ -54,8 +54,8 @@ function addTouchControl(button, action, isKeyDown) {
 }
 
 // Bind touch controls
-addTouchControl(leftButton, 'ArrowLeft', true);
-addTouchControl(rightButton, 'ArrowRight', true);
+addTouchControl(leftButton, 'a', true);
+addTouchControl(rightButton, 'd', true);
 addTouchControl(upButton, 'Space', true);
 
 // Initialize game
