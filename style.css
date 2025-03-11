@@ -178,7 +178,7 @@ button:hover {
   display: none;
 }
 
-/* Mobile Styles */
+/* Mobile Styles - Updated for better cross-device compatibility */
 @media (max-width: 768px) {
   /* Adjust game container to fit the screen */
   #game-container {
@@ -187,46 +187,50 @@ button:hover {
     border: none;
   }
 
-  /* Show touchscreen controls on mobile */
+
+  /* Touch controls container with fixed positioning */
   #touch-controls {
-    position: absolute;
-    bottom: 0px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    width: 100%;
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
-    align-items: center;
-    gap: 40px;
+    height: 120px;
+    z-index: 100;
   }
 
+  /* Individual touch buttons */
   .touch-button {
-    width: 70px; !important;
-    height: 70px; !important;
+    position: absolute;
+    width: 60px;
+    height: 60px;
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
-    text-align: center;
-    line-height: 70px; !important;
-    font-size: 30px; !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
     font-weight: bold;
     border-radius: 50%;
     user-select: none;
     touch-action: manipulation;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
-  /* Positioning for left and right buttons */
-  #left, #right {
-    position: relative;
+  /* Explicit positioning for each button */
+  #left {
+    bottom: 20px;
+    left: 20%;
   }
 
-  /* Move jump button above the left/right buttons */
+  #right {
+    bottom: 20px;
+    left: 60%;
+  }
+
   #up {
-    position: absolute;
-    left: 50%;
-    bottom: 50px;
-    transform: translateX(-50%);
+    bottom: 70px;
+    left: 40%;
   }
 }
