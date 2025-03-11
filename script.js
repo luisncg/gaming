@@ -167,8 +167,8 @@ function createBurger(x, y) {
   burgers.push({ element: burger, x, y, width: 30, height: 30 });
 }
 
-// Update game state
-Game() {
+// Update the keyboard controls in the updateGame function
+function updateGame() {
   if (!gameState.gameActive) return;
 
   player.velocityY += gameState.gravity;
