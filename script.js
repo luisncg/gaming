@@ -283,7 +283,7 @@ function updateGame() {
 // Check for collision with player with smaller hitbox
 const obstacleVisualX = obstacle.x - gameState.viewportOffset;
 // Apply hitbox reduction (making the collision area smaller than the visual)
-const hitboxReduction = 10; // pixels to reduce from each side
+const hitboxReduction = 40; // pixels to reduce from each side
 if (player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReduction &&
     player.x + hitboxReduction < obstacleVisualX + obstacle.width - hitboxReduction &&
     player.y + player.height - hitboxReduction > obstacle.y + hitboxReduction &&
