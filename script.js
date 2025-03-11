@@ -326,12 +326,22 @@ function gameOver() {
   gameOverScreen.style.display = 'flex';
 }
 
-// Event listeners for keyboard input
+// Update the keyboard event listeners
 document.addEventListener('keydown', (event) => {
+  // Map both WASD and arrow keys to the same actions
+  if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = true;
+  if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = true;
+  
+  // Store original key as well
   keys[event.key] = true;
 });
 
 document.addEventListener('keyup', (event) => {
+  // Map both WASD and arrow keys to the same actions
+  if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = false;
+  if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = false;
+  
+  // Store original key as well
   keys[event.key] = false;
 });
 
