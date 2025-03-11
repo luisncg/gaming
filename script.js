@@ -168,16 +168,16 @@ function createBurger(x, y) {
 }
 
 // Update game state
-function updateGame() {
+Game() {
   if (!gameState.gameActive) return;
 
   player.velocityY += gameState.gravity;
 
-  // Handle player movement
-  if (keys['ArrowLeft']) {
+  // Handle player movement with WASD instead of arrow keys
+  if (keys['a'] || keys['A']) {
     player.velocityX = -player.speed;
     player.element.style.transform = 'scaleX(-1)'; // Flip horizontally
-  } else if (keys['ArrowRight']) {
+  } else if (keys['d'] || keys['D']) {
     player.velocityX = player.speed;
     player.element.style.transform = 'scaleX(1)'; // Normal orientation
   } else {
