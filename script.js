@@ -113,12 +113,10 @@ function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
   obstacle.style.width = width + 'px';
   obstacle.style.height = height + 'px';
   
-  // Store absolute world position
-  const worldX = x;
-  // Calculate screen position
-  const screenX = worldX - gameState.viewportOffset;
+  // For falling obstacles, position relative to viewport offset immediately
+  const posX = isFalling ? x : (x - gameState.viewportOffset);
   
-  obstacle.style.left = screenX + 'px';
+  obstacle.style.left = posX + 'px';
   obstacle.style.top = y + 'px';
   obstacle.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
   obstacle.style.backgroundSize = "cover";
@@ -128,7 +126,7 @@ function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
 
   obstacles.push({ 
     element: obstacle, 
-    x: worldX, // Store absolute world X position
+    x: isFalling ? x + gameState.viewportOffset : x, // Store the absolute x for falling obstacles
     y, 
     width, 
     height, 
@@ -137,13 +135,22 @@ function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
     fallSpeed: Math.random() * 2 + 3 // Random fall speed between 3-5
   });
 }
-
-// Spawn falling obstacles
+// Add a function to spawn falling obstacles (updated)
 function spawnFallingObstacle() {
-  // Calculate a position within the current visible area
+  // Calculate a position within the current visible area (viewport-relative)
   const viewportWidth = gameContainer.clientWidth;
-  const randomX = Math.random() * viewportWidth + gameState.viewportOffset; // Add viewportOffset to get world position
+  const randomX = Math.random() * viewportWidth;
   createObstacle(randomX, -50, 45, 45, true); // Start above the screen
+}
+
+// Function to update obstacle positions
+function updateObstaclePositions() {
+  obstacles.forEach(obstacle => {
+    if (obstacle.isFalling) {
+      const screenX = obstacle.x - gameState.viewportOffset;
+      obstacle.element.style.left = screenX + 'px';
+    }
+  });
 }
 
 // Create burger
@@ -169,31 +176,19 @@ function createBurger(x, y) {
   burgers.push({ element: burger, x, y, width: 30, height: 30 });
 }
 
-// Update obstacle positions
-function updateObstaclePositions() {
-  obstacles.forEach(obstacle => {
-    // Update visual position for all obstacles
-    const screenX = obstacle.x - gameState.viewportOffset;
-    obstacle.element.style.left = screenX + 'px';
-  });
-}
-
 // Update game state
 function updateGame() {
   if (!gameState.gameActive) return;
 
   player.velocityY += gameState.gravity;
 
-  // Handle player movement and orientation
   if (keys['ArrowLeft']) {
     player.velocityX = -player.speed;
     player.element.style.transform = 'scaleX(-1)'; // Flip horizontally
   } else if (keys['ArrowRight']) {
     player.velocityX = player.speed;
     player.element.style.transform = 'scaleX(1)'; // Normal orientation
-  } else {
-    player.velocityX = 0;
-  }
+  } else player.velocityX = 0;
   
   if ((keys[' '] || keys['Space']) && !player.isJumping) {
     player.velocityY = -player.jumpForce;
@@ -219,9 +214,6 @@ function updateGame() {
     }
   }
   
-  // Update the visual position of falling obstacles when camera moves
-  updateObstaclePositions();
-  
   // Parallax effect for clouds
   document.querySelector('.cloud1').style.left = `${10 - (gameState.viewportOffset * 0.01) % 100}%`;
   document.querySelector('.cloud2').style.left = `${40 - (gameState.viewportOffset * 0.01) % 100}%`;
@@ -246,7 +238,7 @@ function updateGame() {
       obstacle.velocityY += gameState.gravity * 0.5;
       obstacle.y += obstacle.velocityY;
       
-      // Update obstacle position on screen (vertical only)
+      // Update obstacle position on screen
       obstacle.element.style.top = obstacle.y + 'px';
       
       // Remove obstacles that fall off-screen
@@ -261,9 +253,9 @@ function updateGame() {
     }
     
     // Check for collision with player
-    const screenX = obstacle.x - gameState.viewportOffset;
-    if (player.x + player.width > screenX &&
-        player.x < screenX + obstacle.width &&
+    const obstacleVisualX = obstacle.x - gameState.viewportOffset;
+    if (player.x + player.width > obstacleVisualX &&
+        player.x < obstacleVisualX + obstacle.width &&
         player.y + player.height > obstacle.y &&
         player.y < obstacle.y + obstacle.height) {
       gameOver();
@@ -277,7 +269,6 @@ function updateGame() {
     return;
   }
 
-  // Platform collision detection
   player.isJumping = true;
   for (let i = 0; i < platforms.length; i++) {
     const platform = platforms[i];
@@ -294,7 +285,6 @@ function updateGame() {
     }
   }
 
-  // Burger collection
   for (let i = 0; i < burgers.length; i++) {
     const burger = burgers[i];
 
@@ -312,6 +302,9 @@ function updateGame() {
     }
   }
 
+  // Update obstacle positions to ensure visibility
+  updateObstaclePositions();
+
   player.element.style.left = player.x + 'px';
   player.element.style.top = player.y + 'px';
 }
@@ -325,7 +318,17 @@ function gameOver() {
   gameOverScreen.style.display = 'flex';
 }
 
-// Generate level content
+// Event listeners for keyboard input
+document.addEventListener('keydown', (event) => {
+  keys[event.key] = true;
+});
+
+document.addEventListener('keyup', (event) => {
+  keys[event.key] = false;
+});
+
+// Modify the generateLevelContent function to include some static obstacles on platforms
+// while keeping the main raining mechanic separate
 function generateLevelContent() {
   const startX = gameState.lastGeneratedX;
   const endX = startX + 1000; // Generate 1000px of content at a time
@@ -351,15 +354,6 @@ function generateLevelContent() {
   // Update the last generated position
   gameState.lastGeneratedX = endX;
 }
-
-// Event listeners for keyboard input
-document.addEventListener('keydown', (event) => {
-  keys[event.key] = true;
-});
-
-document.addEventListener('keyup', (event) => {
-  keys[event.key] = false;
-});
 
 // Restart button
 restartButton.addEventListener('click', initGame);
