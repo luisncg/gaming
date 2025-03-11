@@ -109,13 +109,17 @@ function createPlatform(x, y, width, height) {
   platforms.push({ element: platform, x, y, width, height });
 }
 
-// Create obstacle
+// Create obstacle (updated function)
 function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
   const obstacle = document.createElement('div');
   obstacle.className = 'obstacle';
   obstacle.style.width = width + 'px';
   obstacle.style.height = height + 'px';
-  obstacle.style.left = x + 'px';
+  
+  // For falling obstacles, position relative to viewport offset immediately
+  const posX = isFalling ? x : (x - gameState.viewportOffset);
+  
+  obstacle.style.left = posX + 'px';
   obstacle.style.top = y + 'px';
   obstacle.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
   obstacle.style.backgroundSize = "cover";
@@ -125,7 +129,7 @@ function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
 
   obstacles.push({ 
     element: obstacle, 
-    x, 
+    x: isFalling ? x + gameState.viewportOffset : x, // Store the absolute x for falling obstacles
     y, 
     width, 
     height, 
@@ -134,10 +138,11 @@ function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
     fallSpeed: Math.random() * 2 + 3 // Random fall speed between 3-5
   });
 }
-// Add a function to spawn falling obstacles
+// Add a function to spawn falling obstacles (updated)
 function spawnFallingObstacle() {
-  // Calculate a position within the current visible area
-  const randomX = Math.random() * (gameContainer.clientWidth - 45) + gameState.viewportOffset;
+  // Calculate a position within the current visible area (viewport-relative)
+  const viewportWidth = gameContainer.clientWidth;
+  const randomX = Math.random() * viewportWidth;
   createObstacle(randomX, -50, 45, 45, true); // Start above the screen
 }
 
@@ -206,6 +211,21 @@ if (keys['ArrowLeft']) {
       generateLevelContent();
     }
   }
+
+// Right after this section (after the closing curly brace), add the code:
+// Update the visual position of falling obstacles when camera moves
+obstacles.forEach(obstacle => {
+  if (obstacle.isFalling) {
+    // For falling obstacles, recalculate position based on viewport
+    obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
+  } else {
+    // For static obstacles
+    obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
+  }
+});
+
+
+  
    // Parallax effect for clouds
   document.querySelector('.cloud1').style.left = `${10 - (gameState.viewportOffset * 0.01) % 100}%`;
   document.querySelector('.cloud2').style.left = `${40 - (gameState.viewportOffset * 0.01) % 100}%`;
@@ -224,39 +244,147 @@ if (keys['ArrowLeft']) {
     gameState.obstacleSpawnRate = Math.max(30, 120 - Math.floor(gameState.score / 50));
   }
 
-  // Update falling obstacles
-  for (let i = 0; i < obstacles.length; i++) {
-    const obstacle = obstacles[i];
+// Update falling obstacles
+for (let i = 0; i < obstacles.length; i++) {
+  const obstacle = obstacles[i];
+  
+  if (obstacle.isFalling) {
+    // Apply gravity to falling obstacles
+    obstacle.velocityY += gameState.gravity * 0.5;
+    obstacle.y += obstacle.velocityY;
     
-    if (obstacle.isFalling) {
-      // Apply gravity to falling obstacles
-      obstacle.velocityY += gameState.gravity * 0.5;
-      obstacle.y += obstacle.velocityY;
-      
-      // Update obstacle position on screen
-      obstacle.element.style.top = obstacle.y + 'px';
-      
-      // Remove obstacles that fall off-screen
-      if (obstacle.y > gameContainer.clientHeight) {
+    // Update obstacle position on screen
+    obstacle.element.style.top = obstacle.y + 'px';
+    
+    // For falling obstacles, we need to adjust their visual x position when viewport changes
+    const adjustedX = obstacle.isFalling ? 
+      (obstacle.x - gameState.viewportOffset) : 
+      (obstacle.x - gameState.viewportOffset);
+    
+    obstacle.element.style.left = adjustedX + 'px';
+    
+    // Remove obstacles that fall off-screen
+    if (obstacle.y > gameContainer.clientHeight) {
+      if (obstacle.element && obstacle.element.parentNode) {
         gameContainer.removeChild(obstacle.element);
-        obstacles.splice(i, 1);
-        i--;
-        continue;
       }
-    }
-    
-    // Check for collision with player
-    if (player.x + player.width > obstacle.x - gameState.viewportOffset &&
-        player.x < obstacle.x - gameState.viewportOffset + obstacle.width &&
-        player.y + player.height > obstacle.y &&
-        player.y < obstacle.y + obstacle.height) {
-      
-      
-      
-      gameOver();
-      return;
+      obstacles.splice(i, 1);
+      i--;
+      continue;
     }
   }
+    
+ already removed)
+Fixed collision detection to use the visual position of obstacles
+Made sure obstacle positions are updated during camera movement
+To implement this fix:
+
+Replace your createObstacle() function
+Replace your spawnFallingObstacle() function
+Update the section in updateGame() that handles falling obstacles
+Add the additional code for updating obstacles during camera movement
+These changes should ensure that obstacles continue to fall correctly regardless of whether the player is moving the screen or standing still. The obstacles will now appear within the visible area and be properly positioned relative to the viewport.
+
+
+
+
+Retry
+Claude can make mistakes. Please double-check responses.
+
+
+
+No file chosen
+
+3.7 Sonnet
+
+Choose style
+
+Fixed Falling Obstacles Code
+
+// Create obstacle (updated function)
+function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
+  const obstacle = document.createElement('div');
+  obstacle.className = 'obstacle';
+  obstacle.style.width = width + 'px';
+  obstacle.style.height = height + 'px';
+  
+  // For falling obstacles, position relative to viewport offset immediately
+  const posX = isFalling ? x : (x - gameState.viewportOffset);
+  
+  obstacle.style.left = posX + 'px';
+  obstacle.style.top = y + 'px';
+  obstacle.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
+  obstacle.style.backgroundSize = "cover";
+  obstacle.style.position = "absolute";
+
+  gameContainer.appendChild(obstacle);
+
+  obstacles.push({ 
+    element: obstacle, 
+    x: isFalling ? x + gameState.viewportOffset : x, // Store the absolute x for falling obstacles
+    y, 
+    width, 
+    height, 
+    isFalling, 
+    velocityY: 0,
+    fallSpeed: Math.random() * 2 + 3 // Random fall speed between 3-5
+  });
+}
+
+// Add a function to spawn falling obstacles (updated)
+function spawnFallingObstacle() {
+  // Calculate a position within the current visible area (viewport-relative)
+  const viewportWidth = gameContainer.clientWidth;
+  const randomX = Math.random() * viewportWidth;
+  createObstacle(randomX, -50, 45, 45, true); // Start above the screen
+}
+
+// Update the existing obstacle update code in updateGame()
+// Replace the section that handles updating falling obstacles with this:
+
+// Update falling obstacles
+for (let i = 0; i < obstacles.length; i++) {
+  const obstacle = obstacles[i];
+  
+  if (obstacle.isFalling) {
+    // Apply gravity to falling obstacles
+    obstacle.velocityY += gameState.gravity * 0.5;
+    obstacle.y += obstacle.velocityY;
+    
+    // Update obstacle position on screen
+    obstacle.element.style.top = obstacle.y + 'px';
+    
+    // For falling obstacles, we need to adjust their visual x position when viewport changes
+    const adjustedX = obstacle.isFalling ? 
+      (obstacle.x - gameState.viewportOffset) : 
+      (obstacle.x - gameState.viewportOffset);
+    
+    obstacle.element.style.left = adjustedX + 'px';
+    
+    // Remove obstacles that fall off-screen
+    if (obstacle.y > gameContainer.clientHeight) {
+      if (obstacle.element && obstacle.element.parentNode) {
+        gameContainer.removeChild(obstacle.element);
+      }
+      obstacles.splice(i, 1);
+      i--;
+      continue;
+    }
+  }
+  
+  // Check for collision with player (update to handle visual position correctly)
+  let obstacleVisualX = obstacle.isFalling ? 
+    (obstacle.x - gameState.viewportOffset) : 
+    (obstacle.x - gameState.viewportOffset);
+    
+  if (player.x + player.width > obstacleVisualX &&
+      player.x < obstacleVisualX + obstacle.width &&
+      player.y + player.height > obstacle.y &&
+      player.y < obstacle.y + obstacle.height) {
+    gameOver();
+    return;
+  }
+}
   // END OF NEW CODE INSERTION
 
   // Fall off screen check
