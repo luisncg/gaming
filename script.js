@@ -10,6 +10,7 @@ const player = {
   speed: 5,
   jumpForce: 15,
   isJumping: false
+  
 };
 
 const gameState = {
@@ -85,6 +86,8 @@ function initGame() {
   createPlatform(700, 450, 300, 50);
   createPlatform(500, 350, 200, 30);
   
+  // createObstacle(400, 415, 45, 45);
+  
   createBurger(250, 415);
   createBurger(550, 315);
 
@@ -106,7 +109,7 @@ function createPlatform(x, y, width, height) {
   platforms.push({ element: platform, x, y, width, height });
 }
 
-// Create obstacle
+// Create obstacle (updated function)
 function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
   const obstacle = document.createElement('div');
   obstacle.className = 'obstacle';
@@ -143,16 +146,6 @@ function spawnFallingObstacle() {
   createObstacle(randomX, -50, 45, 45, true); // Start above the screen
 }
 
-// Function to update obstacle positions
-function updateObstaclePositions() {
-  obstacles.forEach(obstacle => {
-    if (obstacle.isFalling) {
-      const screenX = obstacle.x - gameState.viewportOffset;
-      obstacle.element.style.left = screenX + 'px';
-    }
-  });
-}
-
 // Create burger
 function createBurger(x, y) {
   // Check if the burger would overlap an obstacle
@@ -182,13 +175,18 @@ function updateGame() {
 
   player.velocityY += gameState.gravity;
 
-  if (keys['ArrowLeft']) {
-    player.velocityX = -player.speed;
-    player.element.style.transform = 'scaleX(-1)'; // Flip horizontally
-  } else if (keys['ArrowRight']) {
-    player.velocityX = player.speed;
-    player.element.style.transform = 'scaleX(1)'; // Normal orientation
-  } else player.velocityX = 0;
+  if (keys['ArrowLeft']) player.velocityX = -player.speed;
+  else if (keys['ArrowRight']) player.velocityX = player.speed;
+  else player.velocityX = 0;
+
+  // Add this to your updateGame function where you handle player movement
+if (keys['ArrowLeft']) {
+  player.velocityX = -player.speed;
+  player.element.style.transform = 'scaleX(-1)'; // Flip horizontally
+} else if (keys['ArrowRight']) {
+  player.velocityX = player.speed;
+  player.element.style.transform = 'scaleX(1)'; // Normal orientation
+} else player.velocityX = 0;
   
   if ((keys[' '] || keys['Space']) && !player.isJumping) {
     player.velocityY = -player.jumpForce;
@@ -213,12 +211,29 @@ function updateGame() {
       generateLevelContent();
     }
   }
+
+// Right after this section (after the closing curly brace), add the code:
+// Update the visual position of falling obstacles when camera moves
+obstacles.forEach(obstacle => {
+  if (obstacle.isFalling) {
+    // For falling obstacles, recalculate position based on viewport
+    obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
+  } else {
+    // For static obstacles
+    obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
+  }
+});
+
+
   
-  // Parallax effect for clouds
+   // Parallax effect for clouds
   document.querySelector('.cloud1').style.left = `${10 - (gameState.viewportOffset * 0.01) % 100}%`;
   document.querySelector('.cloud2').style.left = `${40 - (gameState.viewportOffset * 0.01) % 100}%`;
   document.querySelector('.cloud3').style.left = `${70 - (gameState.viewportOffset * 0.01) % 100}%`;
 
+
+
+  // INSERT THE NEW CODE RIGHT HERE
   // Handle falling obstacle spawning
   gameState.obstacleSpawnTimer++;
   if (gameState.obstacleSpawnTimer >= gameState.obstacleSpawnRate) {
@@ -229,45 +244,159 @@ function updateGame() {
     gameState.obstacleSpawnRate = Math.max(30, 120 - Math.floor(gameState.score / 50));
   }
 
-  // Update falling obstacles
-  for (let i = 0; i < obstacles.length; i++) {
-    const obstacle = obstacles[i];
+// Update falling obstacles
+for (let i = 0; i < obstacles.length; i++) {
+  const obstacle = obstacles[i];
+  
+  if (obstacle.isFalling) {
+    // Apply gravity to falling obstacles
+    obstacle.velocityY += gameState.gravity * 0.5;
+    obstacle.y += obstacle.velocityY;
     
-    if (obstacle.isFalling) {
-      // Apply gravity to falling obstacles
-      obstacle.velocityY += gameState.gravity * 0.5;
-      obstacle.y += obstacle.velocityY;
-      
-      // Update obstacle position on screen
-      obstacle.element.style.top = obstacle.y + 'px';
-      
-      // Remove obstacles that fall off-screen
-      if (obstacle.y > gameContainer.clientHeight) {
-        if (obstacle.element && obstacle.element.parentNode) {
-          gameContainer.removeChild(obstacle.element);
-        }
-        obstacles.splice(i, 1);
-        i--;
-        continue;
+    // Update obstacle position on screen
+    obstacle.element.style.top = obstacle.y + 'px';
+    
+    // For falling obstacles, we need to adjust their visual x position when viewport changes
+    const adjustedX = obstacle.isFalling ? 
+      (obstacle.x - gameState.viewportOffset) : 
+      (obstacle.x - gameState.viewportOffset);
+    
+    obstacle.element.style.left = adjustedX + 'px';
+    
+    // Remove obstacles that fall off-screen
+    if (obstacle.y > gameContainer.clientHeight) {
+      if (obstacle.element && obstacle.element.parentNode) {
+        gameContainer.removeChild(obstacle.element);
       }
-    }
-    
-    // Check for collision with player
-    const obstacleVisualX = obstacle.x - gameState.viewportOffset;
-    if (player.x + player.width > obstacleVisualX &&
-        player.x < obstacleVisualX + obstacle.width &&
-        player.y + player.height > obstacle.y &&
-        player.y < obstacle.y + obstacle.height) {
-      gameOver();
-      return;
+      obstacles.splice(i, 1);
+      i--;
+      continue;
     }
   }
+    
+ already removed)
+Fixed collision detection to use the visual position of obstacles
+Made sure obstacle positions are updated during camera movement
+To implement this fix:
+
+Replace your createObstacle() function
+Replace your spawnFallingObstacle() function
+Update the section in updateGame() that handles falling obstacles
+Add the additional code for updating obstacles during camera movement
+These changes should ensure that obstacles continue to fall correctly regardless of whether the player is moving the screen or standing still. The obstacles will now appear within the visible area and be properly positioned relative to the viewport.
+
+
+
+
+Retry
+Claude can make mistakes. Please double-check responses.
+
+
+
+No file chosen
+
+3.7 Sonnet
+
+Choose style
+
+Fixed Falling Obstacles Code
+
+// Create obstacle (updated function)
+function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
+  const obstacle = document.createElement('div');
+  obstacle.className = 'obstacle';
+  obstacle.style.width = width + 'px';
+  obstacle.style.height = height + 'px';
+  
+  // For falling obstacles, position relative to viewport offset immediately
+  const posX = isFalling ? x : (x - gameState.viewportOffset);
+  
+  obstacle.style.left = posX + 'px';
+  obstacle.style.top = y + 'px';
+  obstacle.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
+  obstacle.style.backgroundSize = "cover";
+  obstacle.style.position = "absolute";
+
+  gameContainer.appendChild(obstacle);
+
+  obstacles.push({ 
+    element: obstacle, 
+    x: isFalling ? x + gameState.viewportOffset : x, // Store the absolute x for falling obstacles
+    y, 
+    width, 
+    height, 
+    isFalling, 
+    velocityY: 0,
+    fallSpeed: Math.random() * 2 + 3 // Random fall speed between 3-5
+  });
+}
+
+// Add a function to spawn falling obstacles (updated)
+function spawnFallingObstacle() {
+  // Calculate a position within the current visible area (viewport-relative)
+  const viewportWidth = gameContainer.clientWidth;
+  const randomX = Math.random() * viewportWidth;
+  createObstacle(randomX, -50, 45, 45, true); // Start above the screen
+}
+
+// Update the existing obstacle update code in updateGame()
+// Replace the section that handles updating falling obstacles with this:
+
+// Update falling obstacles
+for (let i = 0; i < obstacles.length; i++) {
+  const obstacle = obstacles[i];
+  
+  if (obstacle.isFalling) {
+    // Apply gravity to falling obstacles
+    obstacle.velocityY += gameState.gravity * 0.5;
+    obstacle.y += obstacle.velocityY;
+    
+    // Update obstacle position on screen
+    obstacle.element.style.top = obstacle.y + 'px';
+    
+    // For falling obstacles, we need to adjust their visual x position when viewport changes
+    const adjustedX = obstacle.isFalling ? 
+      (obstacle.x - gameState.viewportOffset) : 
+      (obstacle.x - gameState.viewportOffset);
+    
+    obstacle.element.style.left = adjustedX + 'px';
+    
+    // Remove obstacles that fall off-screen
+    if (obstacle.y > gameContainer.clientHeight) {
+      if (obstacle.element && obstacle.element.parentNode) {
+        gameContainer.removeChild(obstacle.element);
+      }
+      obstacles.splice(i, 1);
+      i--;
+      continue;
+    }
+  }
+  
+  // Check for collision with player (update to handle visual position correctly)
+  let obstacleVisualX = obstacle.isFalling ? 
+    (obstacle.x - gameState.viewportOffset) : 
+    (obstacle.x - gameState.viewportOffset);
+    
+  if (player.x + player.width > obstacleVisualX &&
+      player.x < obstacleVisualX + obstacle.width &&
+      player.y + player.height > obstacle.y &&
+      player.y < obstacle.y + obstacle.height) {
+    gameOver();
+    return;
+  }
+}
+  // END OF NEW CODE INSERTION
 
   // Fall off screen check
   if (player.y > gameContainer.clientHeight) {
     gameOver();
     return;
   }
+
+  
+  // Rest of the updateGame function (platform collisions, burger collection, etc.)
+  // ...
+
 
   player.isJumping = true;
   for (let i = 0; i < platforms.length; i++) {
@@ -285,6 +414,7 @@ function updateGame() {
     }
   }
 
+
   for (let i = 0; i < burgers.length; i++) {
     const burger = burgers[i];
 
@@ -301,9 +431,6 @@ function updateGame() {
       i--;
     }
   }
-
-  // Update obstacle positions to ensure visibility
-  updateObstaclePositions();
 
   player.element.style.left = player.x + 'px';
   player.element.style.top = player.y + 'px';
@@ -341,6 +468,8 @@ function generateLevelContent() {
     const platformY = Math.floor(Math.random() * 150) + 350; // Vary the height a bit
 
     createPlatform(lastPlatformX, platformY, platformWidth, 30);
+
+    // Removed the static obstacle creation code from here
 
     // Add a burger on some platforms
     if (Math.random() < 0.5) {
