@@ -280,15 +280,17 @@ function updateGame() {
       }
     }
     
-    // Check for collision with player
-    const obstacleVisualX = obstacle.x - gameState.viewportOffset;
-    if (player.x + player.width > obstacleVisualX &&
-        player.x < obstacleVisualX + obstacle.width &&
-        player.y + player.height > obstacle.y &&
-        player.y < obstacle.y + obstacle.height) {
-      gameOver();
-      return;
-    }
+// Check for collision with player with smaller hitbox
+const obstacleVisualX = obstacle.x - gameState.viewportOffset;
+// Apply hitbox reduction (making the collision area smaller than the visual)
+const hitboxReduction = 10; // pixels to reduce from each side
+if (player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReduction &&
+    player.x + hitboxReduction < obstacleVisualX + obstacle.width - hitboxReduction &&
+    player.y + player.height - hitboxReduction > obstacle.y + hitboxReduction &&
+    player.y + hitboxReduction < obstacle.y + obstacle.height - hitboxReduction) {
+  gameOver();
+  return;
+}
   }
 
   // Fall off screen check
