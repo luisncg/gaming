@@ -58,6 +58,25 @@ addTouchControl(leftButton, 'a', true);
 addTouchControl(rightButton, 'd', true);
 addTouchControl(upButton, 'Space', true);
 
+// Add this new function before initGame
+// Helper function to check if a new platform would overlap with existing ones
+function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 30) {
+  return platforms.some(platform => {
+    // Check horizontal overlap
+    const horizontalOverlap = 
+      newX + newWidth > platform.x && 
+      newX < platform.x + platform.width;
+    
+    // Check vertical overlap with margin
+    // This prevents platforms from being too close vertically
+    const verticalOverlap = 
+      Math.abs((newY + newHeight / 2) - (platform.y + platform.height / 2)) < verticalMargin;
+    
+    return horizontalOverlap && verticalOverlap;
+  });
+}
+
+
 // Initialize game
 function initGame() {
   gameState.gameActive = true;
@@ -350,19 +369,39 @@ function generateLevelContent() {
   const startX = gameState.lastGeneratedX;
   const endX = startX + 1000; // Generate 1000px of content at a time
   let lastPlatformX = startX;
+  const minGap = 50; // Minimum gap between platforms
+  const maxAttempts = 10; // Max attempts to place a platform
 
   // Generate platforms with gaps
   while (lastPlatformX < endX) {
     const platformWidth = Math.floor(Math.random() * 200) + 100;
-    const gap = Math.floor(Math.random() * 100) + 50; // Gap between platforms
-    const platformY = Math.floor(Math.random() * 150) + 350; // Vary the height a bit
+    const gap = Math.floor(Math.random() * 100) + minGap; // Gap between platforms
+    
+    // Try different Y positions if there's an overlap
+    let platformY = 0;
+    let placed = false;
+    let attempts = 0;
+    
+    while (!placed && attempts < maxAttempts) {
+      // Vary the height a bit, but keep within playable range
+      platformY = Math.floor(Math.random() * 150) + 350;
+      
+      // Check if this position would overlap
+      if (!wouldOverlap(lastPlatformX, platformY, platformWidth, 30)) {
+        placed = true;
+      } else {
+        attempts++;
+      }
+    }
+    
+    if (placed) {
+      createPlatform(lastPlatformX, platformY, platformWidth, 30);
 
-    createPlatform(lastPlatformX, platformY, platformWidth, 30);
-
-    // Add a burger on some platforms
-    if (Math.random() < 0.5) {
-      const burgerX = lastPlatformX + Math.random() * (platformWidth - 30);
-      createBurger(burgerX, platformY - 40);
+      // Add a burger on some platforms
+      if (Math.random() < 0.5) {
+        const burgerX = lastPlatformX + Math.random() * (platformWidth - 30);
+        createBurger(burgerX, platformY - 40);
+      }
     }
 
     lastPlatformX += platformWidth + gap;
