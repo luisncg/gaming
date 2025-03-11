@@ -194,17 +194,20 @@ button:hover {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     gap: 40px;
   }
 
   .touch-button {
-    width: 70px;
-    height: 70px;
+    width: 70px; !important;
+    height: 70px; !important;
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
     text-align: center;
-    line-height: 70px;
-    font-size: 30px;
+    line-height: 70px; !important;
+    font-size: 30px; !important;
     font-weight: bold;
     border-radius: 50%;
     user-select: none;
