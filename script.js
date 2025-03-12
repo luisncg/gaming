@@ -209,6 +209,61 @@ function createBurger(x, y) {
   burgers.push({ element: burger, x, y, width: 30, height: 30 });
 }
 
+function triggerJumpScare(callback) {
+  // Create and preload the sound before showing visuals
+  const screamSound = new Audio('https://soundbible.com/mp3/Scary%20Scream-SoundBible.com-1115384336.mp3');
+  
+  // Preload the audio
+  screamSound.preload = 'auto';
+  
+  // Set up audio playback
+  screamSound.volume = 0.3; // Adjust volume
+  
+  // Function to play sound and show visuals together
+  const playJumpScare = () => {
+    // Get the overlay and make it visible
+    const overlay = document.getElementById('jumpscare-overlay');
+    overlay.style.display = 'block';
+    
+    // Get the jumpscare image
+    const jumpscareImg = document.getElementById('jumpscare-image');
+    
+    // Apply animations
+    jumpscareImg.style.animation = 'jumpscare 0.5s forwards';
+    overlay.style.animation = 'flash 0.5s forwards';
+    gameContainer.style.animation = 'shake 0.5s forwards';
+    
+    // Play sound immediately
+    try {
+      const playPromise = screamSound.play();
+      
+      // Handle promise (modern browsers return a promise from play())
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log('Audio play failed:', error);
+        });
+      }
+    } catch (e) {
+      console.log('Audio failed to play', e);
+    }
+    
+    // Hide the jump scare after animation completes and run callback
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      jumpscareImg.style.animation = '';
+      overlay.style.animation = '';
+      gameContainer.style.animation = '';
+      
+      if (callback && typeof callback === 'function') {
+        callback();
+      }
+    }, 500); // Duration of jumpscare in ms
+  };
+  
+  // Start the jumpscare immediately
+  playJumpScare();
+}
+
 // ADD THIS NEW FUNCTION DIRECTLY AFTER THE createBurger FUNCTION:
 function activatePowerUp() {
   player.isInvincible = true;
@@ -494,6 +549,7 @@ function triggerJumpScare(callback) {
 
 // Game over function
 function gameOver() {
+  // Stop the game immediately
   gameState.gameActive = false;
   clearInterval(gameState.gameInterval);
 
@@ -505,9 +561,10 @@ function gameOver() {
   // Remove power-up visual
   const powerUpText = document.getElementById('power-up-text');
   if (powerUpText) powerUpText.remove();
-
-  // Trigger jump scare effect first, then show game over screen
+  
+  // Trigger jump scare effect first, then show game over screen after a delay
   triggerJumpScare(() => {
+    // Show game over screen after jump scare completes
     finalScoreElement.textContent = 'Score: ' + gameState.score;
     gameOverScreen.style.display = 'flex';
     gameOverScreen.style.zIndex = '1000'; // Ensure high z-index
