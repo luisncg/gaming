@@ -456,6 +456,42 @@ function updateGame() {
   player.element.style.top = player.y + 'px';
 }
 
+// Add this new function to your script.js
+function triggerJumpScare(callback) {
+  // Get the overlay and make it visible
+  const overlay = document.getElementById('jumpscare-overlay');
+  overlay.style.display = 'block';
+  
+  // Get the jumpscare image
+  const jumpscareImg = document.getElementById('jumpscare-image');
+  
+  // Add sound effect if desired
+  const screamSound = new Audio('https://soundbible.com/mp3/Scary%20Scream-SoundBible.com-1115384336.mp3');
+  try {
+    screamSound.volume = 0.3; // Adjust volume
+    screamSound.play().catch(err => console.log('Audio play failed:', err));
+  } catch (e) {
+    console.log('Audio failed to play', e);
+  }
+  
+  // Apply animations
+  jumpscareImg.style.animation = 'jumpscare 0.5s forwards';
+  overlay.style.animation = 'flash 0.5s forwards';
+  gameContainer.style.animation = 'shake 0.5s forwards';
+  
+  // Hide the jump scare after animation completes and run callback
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    jumpscareImg.style.animation = '';
+    overlay.style.animation = '';
+    gameContainer.style.animation = '';
+    
+    if (callback && typeof callback === 'function') {
+      callback();
+    }
+  }, 500); // Duration of jumpscare in ms
+}
+
 // Game over function
 function gameOver() {
   gameState.gameActive = false;
@@ -470,8 +506,12 @@ function gameOver() {
   const powerUpText = document.getElementById('power-up-text');
   if (powerUpText) powerUpText.remove();
 
-  finalScoreElement.textContent = 'Score: ' + gameState.score;
-  gameOverScreen.style.display = 'flex';
+  // Trigger jump scare effect first, then show game over screen
+  triggerJumpScare(() => {
+    finalScoreElement.textContent = 'Score: ' + gameState.score;
+    gameOverScreen.style.display = 'flex';
+    gameOverScreen.style.zIndex = '1000'; // Ensure high z-index
+  });
 }
 
 // Update the keyboard event listeners
