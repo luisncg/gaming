@@ -221,7 +221,7 @@ function activatePowerUp() {
   
   // Add a visual indicator for power-up
   const powerUpText = document.createElement('div');
-  powerUpText.textContent = 'RAINBOW POWER!';
+  powerUpText.textContent = 'rainbow time !';
   powerUpText.style.position = 'absolute';
   powerUpText.style.top = '50px';
   powerUpText.style.left = '50%';
