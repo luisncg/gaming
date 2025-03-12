@@ -94,6 +94,21 @@ function initGame() {
   scoreElement.textContent = '0';
   gameOverScreen.style.display = 'none';
 
+  // Reset power-up state
+  player.isInvincible = false;
+  player.invincibilityTimer = 0;
+  player.speed = player.normalSpeed;
+  gameState.powerUpActive = false;
+  gameState.powerUpTriggered = false;
+  gameState.powerUpThreshold = 50; // Reset to initial threshold
+  
+  // Remove any lingering power-up text
+  const powerUpText = document.getElementById('power-up-text');
+  if (powerUpText) powerUpText.remove();
+  
+  // Reset player animation
+  player.element.style.animation = '';
+
   player.x = 50;
   player.y = 300;
   player.velocityX = 0;
