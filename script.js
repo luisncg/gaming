@@ -353,17 +353,34 @@ function updateGame() {
       }
     }
     
-// Check for collision with player with smaller hitbox
-const obstacleVisualX = obstacle.x - gameState.viewportOffset;
-// Apply hitbox reduction (making the collision area smaller than the visual)
-const hitboxReduction = 40; // pixels to reduce from each side
-if (player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReduction &&
-    player.x + hitboxReduction < obstacleVisualX + obstacle.width - hitboxReduction &&
-    player.y + player.height - hitboxReduction > obstacle.y + hitboxReduction &&
-    player.y + hitboxReduction < obstacle.y + obstacle.height - hitboxReduction) {
-  gameOver();
-  return;
-}
+    // Check for collision with player
+    const obstacleVisualX = obstacle.x - gameState.viewportOffset;
+    const hitboxReduction = 10; // pixels to reduce from each side
+    
+    // Only check collision if not invincible
+    if (!player.isInvincible && 
+        player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReduction &&
+        player.x + hitboxReduction < obstacleVisualX + obstacle.width - hitboxReduction &&
+        player.y + player.height - hitboxReduction > obstacle.y + hitboxReduction &&
+        player.y + hitboxReduction < obstacle.y + obstacle.height - hitboxReduction) {
+      gameOver();
+      return;
+    }
+    
+    // If invincible, destroy obstacles on collision
+    if (player.isInvincible &&
+        player.x + player.width > obstacleVisualX &&
+        player.x < obstacleVisualX + obstacle.width &&
+        player.y + player.height > obstacle.y &&
+        player.y < obstacle.y + obstacle.height) {
+      // Remove the obstacle
+      if (obstacle.element && obstacle.element.parentNode) {
+        gameContainer.removeChild(obstacle.element);
+      }
+      obstacles.splice(i, 1);
+      i--;
+      continue;
+    }
   }
 
   // Fall off screen check
@@ -401,11 +418,18 @@ if (player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReductio
       gameState.score += 10;
       scoreElement.textContent = gameState.score;
 
+      // Check if player reached powerUp threshold
+      if (!gameState.powerUpTriggered && gameState.score >= gameState.powerUpThreshold) {
+        activatePowerUp();
+        gameState.powerUpTriggered = true;
+      }
+
       gameContainer.removeChild(burger.element);
       burgers.splice(i, 1);
       i--;
     }
   }
+
 
   player.element.style.left = player.x + 'px';
   player.element.style.top = player.y + 'px';
