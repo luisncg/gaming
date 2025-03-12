@@ -9,6 +9,9 @@ const player = {
   velocityY: 0,
   speed: 5,
   jumpForce: 15,
+  isCrouching: false,
+  normalHeight: 50,  // Original player height
+  crouchHeight: 25   // Height when crouching
   isJumping: false,
   isInvincible: false,
   invincibilityTimer: 0,
@@ -53,11 +56,21 @@ function addTouchControl(button, action, isKeyDown) {
   button.addEventListener('touchstart', (e) => {
     e.preventDefault(); // Prevent scrolling
     keys[action] = isKeyDown;
+    
+    // Add crouching for down button
+    if (action === 'down') {
+      startCrouching();
+    }
   });
 
   button.addEventListener('touchend', (e) => {
     e.preventDefault();
     keys[action] = !isKeyDown;
+    
+    // Stop crouching for down button
+    if (action === 'down') {
+      stopCrouching();
+    }
   });
 }
 
@@ -65,7 +78,7 @@ function addTouchControl(button, action, isKeyDown) {
 addTouchControl(leftButton, 'a', true);
 addTouchControl(rightButton, 'd', true);
 addTouchControl(upButton, 'Space', true);
-
+addTouchControl(document.getElementById('down'), 'down', true);
 // Add this new function before initGame
 // Helper function to check if a new platform would overlap with existing ones
 function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 30) {
@@ -415,6 +428,8 @@ function updateGame() {
   for (let i = 0; i < platforms.length; i++) {
     const platform = platforms[i];
 
+
+    // I might want to modify the collision detection to account for crouching
     if (player.velocityY >= 0 &&
       player.x + player.width > platform.x - gameState.viewportOffset &&
       player.x < platform.x - gameState.viewportOffset + platform.width &&
@@ -479,6 +494,10 @@ document.addEventListener('keydown', (event) => {
   // Map both WASD and arrow keys to the same actions
   if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = true;
   if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = true;
+  if (event.key === 's' || event.key === 'S') {
+    keys['ArrowDown'] = true;
+    startCrouching();
+  }
   
   // Store original key as well
   keys[event.key] = true;
@@ -488,10 +507,44 @@ document.addEventListener('keyup', (event) => {
   // Map both WASD and arrow keys to the same actions
   if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = false;
   if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = false;
+  if (event.key === 's' || event.key === 'S') {
+    keys['ArrowDown'] = false;
+    stopCrouching();
+  }
   
   // Store original key as well
   keys[event.key] = false;
 });
+
+// Add these new functions
+function startCrouching() {
+  if (!player.isJumping) {
+    player.isCrouching = true;
+    player.element.style.height = `${player.crouchHeight}px`;
+    player.height = player.crouchHeight;
+    
+    // Optionally, change player image to crouching image
+    player.element.style.backgroundImage = "url('path/to/crouching/cat/image.png')";
+    
+    // Adjust player position to keep feet on the ground
+    player.y += player.normalHeight - player.crouchHeight;
+    player.element.style.top = `${player.y}px`;
+  }
+}
+
+function stopCrouching() {
+  player.isCrouching = false;
+  player.element.style.height = `${player.normalHeight}px`;
+  player.height = player.normalHeight;
+  
+  // Restore original player image
+  player.element.style.backgroundImage = "url('https://i.imgur.com/LrO0MTY.png')";
+  
+  // Adjust player position back
+  player.y -= player.normalHeight - player.crouchHeight;
+  player.element.style.top = `${player.y}px`;
+}
+
 
 // Generate level content
 function generateLevelContent() {
