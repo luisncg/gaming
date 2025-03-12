@@ -491,10 +491,15 @@ function gameOver() {
 
 // Update the keyboard event listeners
 document.addEventListener('keydown', (event) => {
+  console.log('Key Pressed:', event.key); // Add this debugging line
+  
   // Map both WASD and arrow keys to the same actions
   if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = true;
   if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = true;
+  
+  // Add more detailed logging for crouching
   if (event.key === 's' || event.key === 'S') {
+    console.log('S key detected!');
     keys['ArrowDown'] = true;
     startCrouching();
   }
@@ -504,10 +509,15 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('keyup', (event) => {
+  console.log('Key Released:', event.key); // Add this debugging line
+  
   // Map both WASD and arrow keys to the same actions
   if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = false;
   if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = false;
+  
+  // Add more detailed logging for crouching
   if (event.key === 's' || event.key === 'S') {
+    console.log('S key released!');
     keys['ArrowDown'] = false;
     stopCrouching();
   }
@@ -518,13 +528,14 @@ document.addEventListener('keyup', (event) => {
 
 // Add these new functions
 function startCrouching() {
+  console.log('Starting crouch'); // Debugging line
   if (!player.isJumping) {
     player.isCrouching = true;
     player.element.style.height = `${player.crouchHeight}px`;
     player.height = player.crouchHeight;
     
-    // Optionally, change player image to crouching image
-    player.element.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
+    // IMPORTANT: Replace with YOUR specific crouching cat image URL
+    player.element.style.backgroundImage = "url('https://i.imgur.com/BpCXuyy.jpeg')";
     
     // Adjust player position to keep feet on the ground
     player.y += player.normalHeight - player.crouchHeight;
@@ -533,6 +544,7 @@ function startCrouching() {
 }
 
 function stopCrouching() {
+  console.log('Stopping crouch'); // Debugging line
   player.isCrouching = false;
   player.element.style.height = `${player.normalHeight}px`;
   player.height = player.normalHeight;
