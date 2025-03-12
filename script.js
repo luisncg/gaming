@@ -194,9 +194,73 @@ function createBurger(x, y) {
   burgers.push({ element: burger, x, y, width: 30, height: 30 });
 }
 
+// ADD THIS NEW FUNCTION DIRECTLY AFTER THE createBurger FUNCTION:
+function activatePowerUp() {
+  player.isInvincible = true;
+  player.invincibilityTimer = gameState.powerUpDuration;
+  player.speed = player.normalSpeed * 1.5; // 50% speed boost
+  gameState.powerUpActive = true;
+  
+  // Visual effects for power-up
+  player.element.style.animation = 'rainbow 0.5s linear infinite';
+  
+  // Add a visual indicator for power-up
+  const powerUpText = document.createElement('div');
+  powerUpText.textContent = 'RAINBOW POWER!';
+  powerUpText.style.position = 'absolute';
+  powerUpText.style.top = '50px';
+  powerUpText.style.left = '50%';
+  powerUpText.style.transform = 'translateX(-50%)';
+  powerUpText.style.color = 'white';
+  powerUpText.style.fontWeight = 'bold';
+  powerUpText.style.fontSize = '24px';
+  powerUpText.style.textShadow = '0 0 5px #ff0000, 0 0 10px #ff7700, 0 0 15px #ffff00, 0 0 20px #00ff00, 0 0 25px #0000ff, 0 0 30px #8a2be2';
+  powerUpText.style.zIndex = '100';
+  powerUpText.id = 'power-up-text';
+  gameContainer.appendChild(powerUpText);
+  
+  // Remove the text after 2 seconds
+  setTimeout(() => {
+    const textElement = document.getElementById('power-up-text');
+    if (textElement) textElement.remove();
+  }, 2000);
+  
+  // Add rainbow animation style if it doesn't exist
+  if (!document.getElementById('rainbow-animation-style')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'rainbow-animation-style';
+    styleSheet.textContent = `
+      @keyframes rainbow {
+        0% { filter: hue-rotate(0deg) brightness(1.2); }
+        50% { filter: hue-rotate(180deg) brightness(1.5); }
+        100% { filter: hue-rotate(360deg) brightness(1.2); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+  }
+}
+
+
 // Update the keyboard controls in the updateGame function
 function updateGame() {
   if (!gameState.gameActive) return;
+
+  // Power-up timer management
+  if (player.isInvincible) {
+    player.invincibilityTimer--;
+    
+    if (player.invincibilityTimer <= 0) {
+      // Reset to normal
+      player.isInvincible = false;
+      player.speed = player.normalSpeed;
+      player.element.style.animation = '';
+      gameState.powerUpActive = false;
+      
+      // Reset power-up trigger at higher threshold for next power-up
+      gameState.powerUpTriggered = false;
+      gameState.powerUpThreshold += 100; // Next power-up at +100 points
+    }
+  }
 
   player.velocityY += gameState.gravity;
 
@@ -210,6 +274,7 @@ function updateGame() {
   } else {
     player.velocityX = 0;
   }
+
   
   if ((keys[' '] || keys['Space']) && !player.isJumping) {
     player.velocityY = -player.jumpForce;
