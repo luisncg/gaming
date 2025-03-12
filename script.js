@@ -524,7 +524,7 @@ function startCrouching() {
     player.height = player.crouchHeight;
     
     // Optionally, change player image to crouching image
-    player.element.style.backgroundImage = "url('path/to/crouching/cat/image.png')";
+    player.element.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
     
     // Adjust player position to keep feet on the ground
     player.y += player.normalHeight - player.crouchHeight;
