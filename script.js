@@ -9,7 +9,10 @@ const player = {
   velocityY: 0,
   speed: 5,
   jumpForce: 15,
-  isJumping: false
+  isJumping: false,
+  isInvincible: false,
+  invincibilityTimer: 0,
+  normalSpeed: 5 // Store the original speed
 };
 
 const gameState = {
@@ -21,8 +24,13 @@ const gameState = {
   viewportOffset: 0,
   generationThreshold: 500,
   obstacleSpawnTimer: 0,
-  obstacleSpawnRate: 120 // Spawn a new obstacle every 120 frames (about 2 seconds)
+  obstacleSpawnRate: 120, // Spawn a new obstacle every 120 frames (about 2 seconds)
+  powerUpDuration: 300, // 5 seconds (60 frames per second × 5)
+  powerUpThreshold: 50, // Score needed to trigger power-up
+  powerUpActive: false,
+  powerUpTriggered: false // To ensure it only triggers once when threshold is reached
 };
+
 
 let platforms = [];
 let obstacles = [];
