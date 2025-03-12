@@ -31,6 +31,19 @@ const gameState = {
   powerUpTriggered: false // To ensure it only triggers once when threshold is reached
 };
 
+// ADD THIS CODE RIGHT AFTER THE gameState DECLARATION:
+// Preload audio for jump scare
+const jumpScareSound = new Audio('https://soundbible.com/mp3/Scary%20Scream-SoundBible.com-1115384336.mp3');
+jumpScareSound.preload = 'auto';
+jumpScareSound.volume = 0.3;
+// Force load the audio file
+jumpScareSound.load();
+
+let platforms = [];
+let obstacles = [];
+let burgers = [];
+let keys = {};
+
 
 let platforms = [];
 let obstacles = [];
@@ -87,6 +100,7 @@ function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 30) {
 
 // Initialize game
 function initGame() {
+  jumpScareSound.load();
   gameState.gameActive = true;
   gameState.score = 0;
   gameState.viewportOffset = 0;
@@ -210,59 +224,46 @@ function createBurger(x, y) {
 }
 
 function triggerJumpScare(callback) {
-  // Create and preload the sound before showing visuals
-  const screamSound = new Audio('https://soundbible.com/mp3/Scary%20Scream-SoundBible.com-1115384336.mp3');
+  // Reset and restart audio to ensure it plays from the beginning
+  jumpScareSound.currentTime = 0;
   
-  // Preload the audio
-  screamSound.preload = 'auto';
+  // Play audio immediately - BEFORE any visual changes
+  const playPromise = jumpScareSound.play().catch(err => {
+    console.log('Audio play failed:', err);
+    
+    // If autoplay fails, try again with user interaction
+    document.addEventListener('click', function audioUnlock() {
+      jumpScareSound.play();
+      document.removeEventListener('click', audioUnlock);
+    }, { once: true });
+  });
   
-  // Set up audio playback
-  screamSound.volume = 0.3; // Adjust volume
+  // After initiating audio playback, now show visuals
+  // Get the overlay and make it visible
+  const overlay = document.getElementById('jumpscare-overlay');
+  overlay.style.display = 'block';
   
-  // Function to play sound and show visuals together
-  const playJumpScare = () => {
-    // Get the overlay and make it visible
-    const overlay = document.getElementById('jumpscare-overlay');
-    overlay.style.display = 'block';
+  // Get the jumpscare image
+  const jumpscareImg = document.getElementById('jumpscare-image');
+  
+  // Apply animations
+  jumpscareImg.style.animation = 'jumpscare 0.5s forwards';
+  overlay.style.animation = 'flash 0.5s forwards';
+  gameContainer.style.animation = 'shake 0.5s forwards';
+  
+  // Hide the jump scare after animation completes and run callback
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    jumpscareImg.style.animation = '';
+    overlay.style.animation = '';
+    gameContainer.style.animation = '';
     
-    // Get the jumpscare image
-    const jumpscareImg = document.getElementById('jumpscare-image');
-    
-    // Apply animations
-    jumpscareImg.style.animation = 'jumpscare 0.5s forwards';
-    overlay.style.animation = 'flash 0.5s forwards';
-    gameContainer.style.animation = 'shake 0.5s forwards';
-    
-    // Play sound immediately
-    try {
-      const playPromise = screamSound.play();
-      
-      // Handle promise (modern browsers return a promise from play())
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Audio play failed:', error);
-        });
-      }
-    } catch (e) {
-      console.log('Audio failed to play', e);
+    if (callback && typeof callback === 'function') {
+      callback();
     }
-    
-    // Hide the jump scare after animation completes and run callback
-    setTimeout(() => {
-      overlay.style.display = 'none';
-      jumpscareImg.style.animation = '';
-      overlay.style.animation = '';
-      gameContainer.style.animation = '';
-      
-      if (callback && typeof callback === 'function') {
-        callback();
-      }
-    }, 500); // Duration of jumpscare in ms
-  };
-  
-  // Start the jumpscare immediately
-  playJumpScare();
+  }, 500); // Duration of jumpscare in ms
 }
+
 
 // ADD THIS NEW FUNCTION DIRECTLY AFTER THE createBurger FUNCTION:
 function activatePowerUp() {
