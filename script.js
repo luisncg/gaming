@@ -290,6 +290,12 @@ function updateGame() {
     player.velocityX = 0;
   }
 
+// Double-check power-up threshold - safety check for bug fix
+  if (!player.isInvincible && !gameState.powerUpTriggered && gameState.score >= gameState.powerUpThreshold) {
+    activatePowerUp();
+    gameState.powerUpTriggered = true;
+  }
+  
   
   if ((keys[' '] || keys['Space']) && !player.isJumping) {
     player.velocityY = -player.jumpForce;
@@ -454,6 +460,15 @@ function updateGame() {
 function gameOver() {
   gameState.gameActive = false;
   clearInterval(gameState.gameInterval);
+
+  // Clear power-up state immediately on game over
+  player.isInvincible = false;
+  player.speed = player.normalSpeed;
+  player.element.style.animation = '';
+  
+  // Remove power-up visual
+  const powerUpText = document.getElementById('power-up-text');
+  if (powerUpText) powerUpText.remove();
 
   finalScoreElement.textContent = 'Score: ' + gameState.score;
   gameOverScreen.style.display = 'flex';
