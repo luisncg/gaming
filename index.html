@@ -364,16 +364,15 @@
   addTouchControl(rightButton, 'd', true);
   addTouchControl(upButton, 'Space', true);
 
-  // Add this new function before initGame
   // Helper function to check if a new platform would overlap with existing ones
-  function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 30) {
+  function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 80) {
     return platforms.some(platform => {
       // Check horizontal overlap
       const horizontalOverlap = 
         newX + newWidth > platform.x && 
         newX < platform.x + platform.width;
       
-      // Check vertical overlap with margin
+      // Check vertical overlap with increased margin
       // This prevents platforms from being too close vertically
       const verticalOverlap = 
         Math.abs((newY + newHeight / 2) - (platform.y + platform.height / 2)) < verticalMargin;
@@ -793,14 +792,15 @@
     let lastPlatformX = startX;
     let lastPlatformY = 450; // Track the Y position of the last platform
     let lastPlatformWidth = 300; // Track the width of the last platform
-    const minGap = 50; // Minimum gap between platforms
+    const minGap = 70; // Increased minimum gap between platforms
     const maxGap = 150; // Maximum gap between platforms - ensure it's jumpable
-    const maxHeightDifference = 100; // Maximum height difference between platforms
-    const maxAttempts = 10; // Max attempts to place a platform
+    const maxHeightDifference = 80; // Reduced maximum height difference between platforms
+    const minHeightDifference = 30; // Minimum height difference to prevent flat terrain
+    const maxAttempts = 15; // Increased max attempts to place a platform
 
     // Generate platforms with gaps
     while (lastPlatformX < endX) {
-      const platformWidth = Math.floor(Math.random() * 150) + 100; // 100-250px width
+      const platformWidth = Math.floor(Math.random() * 120) + 100; // 100-220px width
       
       // Calculate a reasonable gap based on the player's jump ability
       // The gap should be proportional to the player's jump force and speed
@@ -808,7 +808,7 @@
       const gap = Math.floor(Math.random() * (maxGap - minGap)) + minGap;
       
       // Ensure the gap is not too large to jump across
-      const actualGap = Math.min(gap, jumpDistance * 0.8); // 80% of max jump distance
+      const actualGap = Math.min(gap, jumpDistance * 0.7); // 70% of max jump distance
       
       // Try different Y positions if there's an overlap
       let platformY = 0;
@@ -818,11 +818,22 @@
       while (!placed && attempts < maxAttempts) {
         // Vary the height, but keep within playable range and ensure it's reachable
         // Calculate a height that's within reach of the player's jump
-        const minY = Math.max(250, lastPlatformY - maxHeightDifference);
-        const maxY = Math.min(450, lastPlatformY + maxHeightDifference);
-        platformY = Math.floor(Math.random() * (maxY - minY)) + minY;
+        // Force some height difference to create interesting terrain
+        let heightDifference;
+        if (Math.random() > 0.5) {
+          // Platform higher than previous
+          heightDifference = -(Math.floor(Math.random() * (maxHeightDifference - minHeightDifference)) + minHeightDifference);
+        } else {
+          // Platform lower than previous
+          heightDifference = Math.floor(Math.random() * (maxHeightDifference - minHeightDifference)) + minHeightDifference;
+        }
         
-        // Check if this position would overlap
+        // Ensure we stay within reasonable bounds
+        const minY = Math.max(250, lastPlatformY + heightDifference);
+        const maxY = Math.min(450, lastPlatformY + heightDifference);
+        platformY = Math.min(maxY, Math.max(minY, lastPlatformY + heightDifference));
+        
+        // Check if this position would overlap with any existing platform
         if (!wouldOverlap(lastPlatformX + lastPlatformWidth + actualGap, platformY, platformWidth, 30)) {
           placed = true;
         } else {
@@ -845,7 +856,14 @@
         lastPlatformWidth = platformWidth;
       } else {
         // If we couldn't place a platform after multiple attempts, just move forward
-        lastPlatformX += 200;
+        // and create a safe platform at a reasonable height
+        const safeY = Math.min(450, Math.max(350, lastPlatformY));
+        const safeGap = Math.min(actualGap, jumpDistance * 0.6);
+        createPlatform(lastPlatformX + lastPlatformWidth + safeGap, safeY, platformWidth, 30);
+        
+        lastPlatformX = lastPlatformX + lastPlatformWidth + safeGap;
+        lastPlatformY = safeY;
+        lastPlatformWidth = platformWidth;
       }
     }
 
