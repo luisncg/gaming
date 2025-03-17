@@ -157,23 +157,38 @@
 
     .cloud1 {
       top: 50px;
-      left: 10%;
       width: 100px;
       height: 60px;
+      animation: cloudFloat1 60s linear infinite;
     }
 
     .cloud2 {
       top: 100px;
-      left: 40%;
       width: 120px;
       height: 70px;
+      animation: cloudFloat2 45s linear infinite;
     }
 
     .cloud3 {
       top: 30px;
-      left: 70%;
       width: 90px;
       height: 50px;
+      animation: cloudFloat3 75s linear infinite;
+    }
+
+    @keyframes cloudFloat1 {
+      0% { left: -100px; }
+      100% { left: 100%; }
+    }
+    
+    @keyframes cloudFloat2 {
+      0% { left: -120px; }
+      100% { left: 100%; }
+    }
+    
+    @keyframes cloudFloat3 {
+      0% { left: -90px; }
+      100% { left: 100%; }
     }
 
     /* Touch Controls */
@@ -265,6 +280,21 @@
   if (isTouchDevice()) {
     document.getElementById('touch-controls').style.display = 'flex';
   }
+
+  // Initialize cloud positions with staggered starting points
+  function initClouds() {
+    const cloud1 = document.querySelector('.cloud1');
+    const cloud2 = document.querySelector('.cloud2');
+    const cloud3 = document.querySelector('.cloud3');
+    
+    // Set initial positions with animation delay to stagger them
+    cloud1.style.animationDelay = '0s';
+    cloud2.style.animationDelay = '-15s'; // Start 15 seconds into the animation
+    cloud3.style.animationDelay = '-30s'; // Start 30 seconds into the animation
+  }
+
+  // Call cloud initialization when window loads
+  window.addEventListener('load', initClouds);
 
   // Game variables
   const player = {
@@ -600,11 +630,6 @@
       }
     });
     
-    // Parallax effect for clouds
-    document.querySelector('.cloud1').style.left = `${10 - (gameState.viewportOffset * 0.01) % 100}%`;
-    document.querySelector('.cloud2').style.left = `${40 - (gameState.viewportOffset * 0.01) % 100}%`;
-    document.querySelector('.cloud3').style.left = `${70 - (gameState.viewportOffset * 0.01) % 100}%`;
-
     // Handle falling obstacle spawning
     gameState.obstacleSpawnTimer++;
     if (gameState.obstacleSpawnTimer >= gameState.obstacleSpawnRate) {
