@@ -305,12 +305,12 @@
     height: 40,
     velocityX: 0,
     velocityY: 0,
-    speed: 5,
-    jumpForce: 15,
+    speed: 7,
+    jumpForce: 20,
     isJumping: false,
     isInvincible: false,
     invincibilityTimer: 0,
-    normalSpeed: 5 // Store the original speed
+    normalSpeed: 7
   };
 
   const gameState = {
@@ -792,9 +792,9 @@
     let lastPlatformX = startX;
     let lastPlatformY = 450; // Track the Y position of the last platform
     let lastPlatformWidth = 300; // Track the width of the last platform
-    const minGap = 70; // Increased minimum gap between platforms
-    const maxGap = 130; // Reduced maximum gap between platforms (was 150)
-    const maxHeightDifference = 80; // Reduced maximum height difference between platforms
+    const minGap = 70; // Minimum gap between platforms
+    const maxGap = 130; // Maximum gap between platforms
+    const maxHeightDifference = 80; // Maximum height difference between platforms
     const minHeightDifference = 30; // Minimum height difference to prevent flat terrain
     const maxAttempts = 15; // Increased max attempts to place a platform
 
@@ -804,11 +804,11 @@
       
       // Calculate a reasonable gap based on the player's jump ability
       // The gap should be proportional to the player's jump force and speed
-      const jumpDistance = player.speed * (player.jumpForce / gameState.gravity) * 1.8; // Reduced multiplier from 2 to 1.8
+      const jumpDistance = player.speed * (player.jumpForce / gameState.gravity) * 1.9; // Keep the multiplier for longer jumps
       const gap = Math.floor(Math.random() * (maxGap - minGap)) + minGap;
       
       // Ensure the gap is not too large to jump across
-      const actualGap = Math.min(gap, jumpDistance * 0.65); // Reduced from 0.7 to 0.65
+      const actualGap = Math.min(gap, jumpDistance * 0.65); // Keep original gap percentage
       
       // Try different Y positions if there's an overlap
       let platformY = 0;
@@ -858,7 +858,7 @@
         // If we couldn't place a platform after multiple attempts, just move forward
         // and create a safe platform at a reasonable height
         const safeY = Math.min(450, Math.max(350, lastPlatformY));
-        const safeGap = Math.min(actualGap, jumpDistance * 0.6);
+        const safeGap = Math.min(actualGap, jumpDistance * 0.65);
         createPlatform(lastPlatformX + lastPlatformWidth + safeGap, safeY, platformWidth, 30);
         
         lastPlatformX = lastPlatformX + lastPlatformWidth + safeGap;
