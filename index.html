@@ -90,7 +90,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Align to top */
+            justify-content: center; /* Center content */
             position: relative;
             overflow: hidden; /* Prevent scrolling */
             padding: 0; /* Remove all padding */
@@ -100,7 +100,7 @@
         
         .game-frame {
             width: 100%;
-            height: 100%; /* Full height initially */
+            height: 100%; /* Full height */
             border: none;
             display: block;
             position: absolute;
@@ -108,13 +108,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            object-fit: cover; /* Cover the container */
+            object-fit: contain; /* Maintain aspect ratio */
         }
         
         /* Style for mobile devices */
         @media (max-width: 768px) {
             .game-frame {
-                /* Mobile-specific iframe styling managed by JavaScript */
+                /* No special mobile styling for iframe */
             }
             
             /* Hide scrollbars on mobile */
@@ -343,74 +343,29 @@
                     document.body.style.position = 'fixed';
                     document.body.style.width = '100%';
                     
-                    // Apply mobile-specific adjustments 
+                    // Simple mobile layout adjustment that doesn't reserve space for controls
                     function applyMobileLayoutFix() {
                         // Get dimensions
                         const viewportHeight = window.innerHeight;
                         const viewportWidth = window.innerWidth;
-                        const isMobile = viewportWidth <= 768;
                         
-                        // First remove any existing adjustments
+                        // Remove any existing spacers
                         if (document.getElementById('controls-spacer')) {
                             document.getElementById('controls-spacer').remove();
                         }
                         
-                        // Reset iframe style to default full size
+                        // Set iframe to use full container space
                         gameFrame.style.height = '100%';
                         gameFrame.style.width = '100%';
                         gameFrame.style.bottom = '0';
                         gameFrame.style.top = '0';
-                        gameFrame.style.transform = 'none';
-                        gameFrame.style.objectFit = 'cover';
                         
-                        // For mobile devices, create a controlled iframe container
-                        if (isMobile) {
-                            // Calculate optimal size - the black bar occurs because the game 
-                            // has a fixed aspect ratio that doesn't match the mobile screen
-                            const controlsHeight = 70; // Height reserved for game controls
-                            
-                            // Create a colored element that matches the background exactly
-                            const controlsArea = document.createElement('div');
-                            controlsArea.id = 'controls-spacer';
-                            controlsArea.style = `
-                                position: absolute;
-                                bottom: 0;
-                                left: 0;
-                                width: 100%;
-                                height: ${controlsHeight}px;
-                                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--bg-color')};
-                                z-index: 2;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            `;
-                            
-                            // Add a small hint in the spacer to guide users
-                            const touchHint = document.createElement('div');
-                            touchHint.textContent = "Touch controls area";
-                            touchHint.style = `
-                                color: rgba(255,255,255,0.3);
-                                font-size: 12px;
-                                font-style: italic;
-                            `;
-                            controlsArea.appendChild(touchHint);
-                            gameContainer.appendChild(controlsArea);
-                            
-                            // Adjust frame size to account for controls
-                            gameFrame.style.height = `calc(100% - ${controlsHeight}px)`;
-                            gameFrame.style.bottom = `${controlsHeight}px`;
-                            
-                            // Also fix common iframe scaling issues on mobile
-                            gameFrame.style.transformOrigin = 'top center';
-                            
-                            // Force redraw to prevent flickering
-                            gameContainer.style.transform = 'translateZ(0)';
-                            gameFrame.style.transform = 'translateZ(0)';
-                            
-                            // Add data attributes to help with debugging
-                            gameFrame.dataset.mobileAdjusted = 'true';
-                            gameFrame.dataset.controlsHeight = controlsHeight;
-                        }
+                        // Set object-fit to ensure proper display
+                        gameFrame.style.objectFit = 'contain';
+                        
+                        // Force hardware acceleration to prevent flickering
+                        gameContainer.style.transform = 'translateZ(0)';
+                        gameFrame.style.transform = 'translateZ(0)';
                     }
                     
                     // Apply the layout fix
