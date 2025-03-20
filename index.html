@@ -1,921 +1,490 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%; margin: 0; padding: 0;">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>burger</title>
-  <!-- Viewport meta tag to control scaling on mobile -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <!-- Prevent user from double tapping to zoom -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  
-  <style>
-    /* General styles */
-    body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #333;
-      font-family: Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Burger Cat Game | luisncg</title>
+    <!-- Use the same styles from your main site -->
+    <style>
+        /* Core styles from main site for consistency */
+        :root {
+            --bg-color: #0f0f1e;
+            --text-color: #ffffff;
+            --accent1: #ff3e6c;
+            --accent2: #4d7cff;
+            --accent3: #6ee7b7;
+            --card-bg: rgba(30, 30, 60, 0.6);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: var(--transition);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow: hidden; /* Prevent any scrolling on the body */
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
 
-    /* Game container */
-    #game-container {
-      position: relative;
-      width: 800px;
-      height: 500px;
-      border: 4px solid #222;
-      overflow: hidden;
-      background-color: #87CEEB;
-    }
+        /* Header styles */
+        header {
+            padding: 0.5rem 1rem;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: rgba(15, 15, 30, 0.5);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: opacity 0.3s ease;
+        }
+        
+        header:hover {
+            opacity: 1;
+        }
+        
+        header.fade {
+            opacity: 0.3;
+        }
+        
+        .name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--accent1), var(--accent2), var(--accent3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link:hover {
+            background: rgba(50, 50, 100, 0.7);
+            transform: translateY(-2px);
+        }
 
-    /* Player */
-    #player {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background-color: transparent;
-      background-image: url('https://i.imgur.com/LrO0MTY.png'); /* Replace with actual URL */
-      background-size: cover;
-      z-index: 10;
-    }
+        /* Game container styles */
+        .game-container {
+            width: 100%;
+            height: 100vh; /* Full height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align to top */
+            position: relative;
+            overflow: hidden; /* Prevent scrolling */
+            padding: 0; /* Remove all padding */
+            margin: 0; /* Remove all margins */
+            background-color: var(--bg-color); /* Match background color */
+        }
+        
+        .game-frame {
+            width: 100%;
+            height: 100%; /* Full height initially */
+            border: none;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            object-fit: cover; /* Cover the container */
+        }
+        
+        /* Style for mobile devices */
+        @media (max-width: 768px) {
+            .game-frame {
+                /* Mobile-specific iframe styling managed by JavaScript */
+            }
+            
+            /* Hide scrollbars on mobile */
+            ::-webkit-scrollbar {
+                display: none;
+            }
+            
+            body {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+        
+        .game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 30, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+        
+        .game-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent3);
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .start-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, var(--accent1), var(--accent2));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .start-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
 
-    /* Platforms */
-    .platform {
-      position: absolute;
-      background-color: #55AA55;
-      border-top: 4px solid #338833;
-    }
+        /* Animated cat silhouette */
+        .cat-silhouette {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            width: 100px;
+            height: 80px;
+            opacity: 0.6;
+            animation: float 6s infinite ease-in-out;
+        }
 
-    /* Obstacles */
-    .obstacle {
-      position: absolute;
-      width: 45px; /* Adjust as needed */
-      height: 45px; /* Adjust as needed */
-      background-image: url('https://i.imgur.com/WI3ssR6.png'); /* Your uploaded image */
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
 
-    /* Burgers */
-    .burger {
-      position: absolute;
-      width: 44px;
-      height: 44px; /* Make it square for a more natural image look */
-      z-index: 5;
-      background-color: transparent; /* Remove the old color */
-      background-image: url('https://i.imgur.com/phNixoY.png'); /* Replace with actual URL */
-      background-size: cover; /* Ensures it fits the element */
-      background-position: center;
-      border-radius: 5px; /* Slight rounding to make it look good */
-      border: none; /* Remove previous border */
-      box-shadow: none; /* Remove inner shadow */
-    }
+        /* Burger icon */
+        .burger {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            opacity: 0.8;
+        }
 
-    /* Score Display */
-    #score-container {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
+        .burger:nth-child(1) {
+            top: 20%;
+            left: 15%;
+            animation: spin 8s infinite linear;
+        }
 
-    #sun {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background-image: url('https://i.imgur.com/8MUlF6l.png'); /* You'll need to replace with actual URL */
-      background-size: cover;
-      z-index: 5;
-      animation: float 3s ease-in-out infinite;
-    }
+        .burger:nth-child(2) {
+            top: 30%;
+            right: 20%;
+            animation: spin 10s infinite linear reverse;
+        }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
+        .burger:nth-child(3) {
+            bottom: 25%;
+            left: 30%;
+            animation: spin 7s infinite linear;
+        }
 
-    /* Game Over Screen */
-    #game-over {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 36px;
-      z-index: 100;
-    }
-
-    #final-score {
-      margin: 20px 0;
-      font-size: 24px;
-    }
-
-    #restart-button {
-      padding: 10px 20px;
-      font-size: 18px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #restart-button:hover {
-      background-color: #45a049;
-    }
-
-    /* Parallax Background */
-    #parallax-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-
-    .cloud {
-      position: absolute;
-      background-image: url('https://i.imgur.com/h8ISXTt.png'); /* Replace with actual URL */
-      background-size: contain;
-      background-repeat: no-repeat;
-      z-index: 2;
-    }
-
-    .cloud1 {
-      top: 50px;
-      width: 100px;
-      height: 60px;
-      animation: cloudFloat1 60s linear infinite;
-    }
-
-    .cloud2 {
-      top: 100px;
-      width: 120px;
-      height: 70px;
-      animation: cloudFloat2 45s linear infinite;
-    }
-
-    .cloud3 {
-      top: 30px;
-      width: 90px;
-      height: 50px;
-      animation: cloudFloat3 75s linear infinite;
-    }
-
-    @keyframes cloudFloat1 {
-      0% { left: 100%; }
-      100% { left: -100px; }
-    }
-    
-    @keyframes cloudFloat2 {
-      0% { left: 100%; }
-      100% { left: -120px; }
-    }
-    
-    @keyframes cloudFloat3 {
-      0% { left: 100%; }
-      100% { left: -90px; }
-    }
-
-    /* Touch Controls */
-    #touch-controls {
-      position: fixed; /* Change from absolute to fixed */
-      bottom: 20px;
-      left: 0; /* Ensure it spans the full width */
-      width: 100%;
-      display: none; /* Hide by default */
-      justify-content: space-between;
-      z-index: 50;
-      padding: 0 20px; /* Add padding to prevent buttons from touching edges */
-      box-sizing: border-box; /* Ensure padding doesn't increase width */
-    }
-
-    .touch-button {
-      width: 60px;
-      height: 60px;
-      background-color: rgba(255, 255, 255, 0.6); /* Make slightly more visible */
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      user-select: none;
-      -webkit-user-select: none;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Add shadow for better visibility */
-    }
-
-    #left {
-      margin-left: 0; /* Remove left margin as we now have padding */
-    }
-
-    #right {
-      margin-right: 0; /* Remove right margin as we now have padding */
-    }
-
-    #up {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    /* Add media query for mobile screens */
-    @media (max-width: 768px) {
-      body {
-        padding: 0;
-        margin: 0;
-        height: 100vh;
-        overflow: hidden; /* Prevent scrolling on mobile */
-      }
-
-      #game-container {
-        width: 100%;
-        height: 100%;
-        border: none;
-      }
-
-      .touch-button {
-        width: 70px; /* Slightly larger on mobile */
-        height: 70px;
-      }
-      
-      #up {
-        bottom: 20px; /* Move up a bit from bottom */
-      }
-    }
-
-    /* Rainbow animation for power-up */
-    @keyframes rainbow {
-      0% { filter: hue-rotate(0deg) brightness(1.2); }
-      50% { filter: hue-rotate(180deg) brightness(1.5); }
-      100% { filter: hue-rotate(360deg) brightness(1.2); }
-    }
-  </style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body style="height: 100%; margin: 0; padding: 0; overflow: hidden;">
-
-<!-- Your game container -->
-<div id="game-container" style="height: 100%; width: 100%; position: relative;">
-
-  <div id="sun"></div>
-
-  <div id="parallax-bg">
-    <div class="cloud cloud1"></div>
-    <div class="cloud cloud2"></div>
-    <div class="cloud cloud3"></div>
-  </div>
-  
-  <div id="player"></div>
-  <div id="score-container">Score: <span id="score">0</span></div>
-  <div id="game-over">
-    Game Over!
-    <div id="final-score">Score: 0</div>
-    <button id="restart-button">Play Again</button>
-  </div>
-  
-  <div id="controls"></div>
-
-  <!-- Touchscreen Controls -->
-  <div id="touch-controls">
-    <div id="left" class="touch-button">←</div>
-    <div id="right" class="touch-button">→</div>
-    <div id="up" class="touch-button">↑</div>
-  </div>
-</div>
-
-<script>
-  // Check if device is touch-enabled and show touch controls if it is
-  function isTouchDevice() {
-    return (('ontouchstart' in window) ||
-       (navigator.maxTouchPoints > 0) ||
-       (navigator.msMaxTouchPoints > 0) ||
-       window.matchMedia("(max-width: 768px)").matches); // Also show on small screens
-  }
-  
-  // Show touch controls only on touch devices
-  function showTouchControls() {
-    if (isTouchDevice()) {
-      document.getElementById('touch-controls').style.display = 'flex';
-    }
-  }
-  
-  // Call on page load and resize
-  window.addEventListener('load', showTouchControls);
-  window.addEventListener('resize', showTouchControls);
-
-  // Initialize cloud positions with staggered starting points
-  function initClouds() {
-    const cloud1 = document.querySelector('.cloud1');
-    const cloud2 = document.querySelector('.cloud2');
-    const cloud3 = document.querySelector('.cloud3');
-    
-    // Set initial positions with animation delay to stagger them
-    cloud1.style.animationDelay = '0s';
-    cloud2.style.animationDelay = '-15s'; // Start 15 seconds into the animation
-    cloud3.style.animationDelay = '-30s'; // Start 30 seconds into the animation
-  }
-
-  // Call cloud initialization when window loads
-  window.addEventListener('load', initClouds);
-
-  // Game variables
-  const player = {
-    element: document.getElementById('player'),
-    x: 50,
-    y: 300,
-    width: 40,
-    height: 40,
-    velocityX: 0,
-    velocityY: 0,
-    speed: 6,
-    jumpForce: 17,
-    isJumping: false,
-    isInvincible: false,
-    invincibilityTimer: 0,
-    normalSpeed: 6
-  };
-
-  const gameState = {
-    gravity: 0.8,
-    score: 0,
-    gameActive: true,
-    gameInterval: null,
-    lastGeneratedX: 800,
-    viewportOffset: 0,
-    generationThreshold: 500,
-    obstacleSpawnTimer: 0,
-    obstacleSpawnRate: 120, // Spawn a new obstacle every 120 frames (about 2 seconds)
-    powerUpDuration: 300, // 5 seconds (60 frames per second × 5)
-    powerUpThreshold: 50, // Score needed to trigger power-up
-    powerUpActive: false,
-    powerUpTriggered: false // To ensure it only triggers once when threshold is reached
-  };
-
-
-  let platforms = [];
-  let obstacles = [];
-  let burgers = [];
-  let keys = {};
-
-  const gameContainer = document.getElementById('game-container');
-  const scoreElement = document.getElementById('score');
-  const gameOverScreen = document.getElementById('game-over');
-  const finalScoreElement = document.getElementById('final-score');
-  const restartButton = document.getElementById('restart-button');
-
-  // Touch controls
-  const leftButton = document.getElementById('left');
-  const rightButton = document.getElementById('right');
-  const upButton = document.getElementById('up');
-
-  // Handle touch controls
-  function addTouchControl(button, action, isKeyDown) {
-    button.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // Prevent scrolling
-      keys[action] = isKeyDown;
-    });
-
-    button.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      keys[action] = !isKeyDown;
-    });
-  }
-
-  // Bind touch controls
-  addTouchControl(leftButton, 'a', true);
-  addTouchControl(rightButton, 'd', true);
-  addTouchControl(upButton, 'Space', true);
-
-  // Helper function to check if a new platform would overlap with existing ones
-  function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 80) {
-    return platforms.some(platform => {
-      // Check horizontal overlap
-      const horizontalOverlap = 
-        newX + newWidth > platform.x && 
-        newX < platform.x + platform.width;
-      
-      // Check vertical overlap with increased margin
-      // This prevents platforms from being too close vertically
-      const verticalOverlap = 
-        Math.abs((newY + newHeight / 2) - (platform.y + platform.height / 2)) < verticalMargin;
-      
-      return horizontalOverlap && verticalOverlap;
-    });
-  }
-
-
-  // Initialize game
-  function initGame() {
-    gameState.gameActive = true;
-    gameState.score = 0;
-    gameState.viewportOffset = 0;
-    gameState.lastGeneratedX = 800;
-    scoreElement.textContent = '0';
-    gameOverScreen.style.display = 'none';
-
-    // Reset power-up state
-    player.isInvincible = false;
-    player.invincibilityTimer = 0;
-    player.speed = player.normalSpeed;
-    gameState.powerUpActive = false;
-    gameState.powerUpTriggered = false;
-    gameState.powerUpThreshold = 50; // Reset to initial threshold
-    
-    // Remove any lingering power-up text
-    const powerUpText = document.getElementById('power-up-text');
-    if (powerUpText) powerUpText.remove();
-    
-    // Reset player animation
-    player.element.style.animation = '';
-
-    player.x = 50;
-    player.y = 300;
-    player.velocityX = 0;
-    player.velocityY = 0;
-    player.element.style.left = player.x + 'px';
-    player.element.style.top = player.y + 'px';
-
-    platforms = [];
-    obstacles = [];
-    burgers = [];
-    
-    document.querySelectorAll('.platform, .obstacle, .burger').forEach(element => element.remove());
-
-    createPlatform(0, 450, 300, 50);
-    createPlatform(350, 450, 300, 50);
-    createPlatform(700, 450, 300, 50);
-    createPlatform(500, 350, 200, 30);
-    
-    createBurger(250, 415);
-    createBurger(550, 315);
-
-    generateLevelContent();
-    gameState.gameInterval = setInterval(updateGame, 16);
-  }
-
-  // Create platform
-  function createPlatform(x, y, width, height) {
-    const platform = document.createElement('div');
-    platform.className = 'platform';
-    platform.style.left = (x - gameState.viewportOffset) + 'px';
-    platform.style.top = y + 'px';
-    platform.style.width = width + 'px';
-    platform.style.height = height + 'px';
-
-    gameContainer.appendChild(platform);
-
-    platforms.push({ element: platform, x, y, width, height });
-  }
-
-  // Create obstacle
-  function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
-    const obstacle = document.createElement('div');
-    obstacle.className = 'obstacle';
-    obstacle.style.width = width + 'px';
-    obstacle.style.height = height + 'px';
-    
-    // For falling obstacles, position relative to viewport offset immediately
-    const posX = isFalling ? x : (x - gameState.viewportOffset);
-    
-    obstacle.style.left = posX + 'px';
-    obstacle.style.top = y + 'px';
-    obstacle.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
-    obstacle.style.backgroundSize = "cover";
-    obstacle.style.position = "absolute";
-
-    gameContainer.appendChild(obstacle);
-
-    obstacles.push({ 
-      element: obstacle, 
-      x: isFalling ? x + gameState.viewportOffset : x, // Store the absolute x for falling obstacles
-      y, 
-      width, 
-      height, 
-      isFalling, 
-      velocityY: 0,
-      fallSpeed: Math.random() * 2 + 3 // Random fall speed between 3-5
-    });
-  }
-
-  // Add a function to spawn falling obstacles
-  function spawnFallingObstacle() {
-    // Calculate a position within the current visible area (viewport-relative)
-    const viewportWidth = gameContainer.clientWidth;
-    const randomX = Math.random() * viewportWidth;
-    createObstacle(randomX, -50, 45, 45, true); // Start above the screen
-  }
-
-  // Create burger
-  function createBurger(x, y) {
-    // Check if the burger would overlap an obstacle
-    const isOnObstacle = obstacles.some(obstacle => 
-      x + 30 > obstacle.x && x < obstacle.x + obstacle.width &&
-      y + 30 > obstacle.y && y < obstacle.y + obstacle.height
-    );
-
-    // If it would overlap, adjust its position to be just above the obstacle
-    if (isOnObstacle) {
-      y -= 40; // Moves the burger up to avoid overlap
-    }
-
-    const burger = document.createElement('div');
-    burger.className = 'burger';
-    burger.style.left = (x - gameState.viewportOffset) + 'px';
-    burger.style.top = y + 'px';
-
-    gameContainer.appendChild(burger);
-
-    burgers.push({ element: burger, x, y, width: 30, height: 30 });
-  }
-
-  // ADD THIS NEW FUNCTION DIRECTLY AFTER THE createBurger FUNCTION:
-  function activatePowerUp() {
-    player.isInvincible = true;
-    player.invincibilityTimer = gameState.powerUpDuration;
-    player.speed = player.normalSpeed * 1.5; // 50% speed boost
-    gameState.powerUpActive = true;
-    
-    // Visual effects for power-up
-    player.element.style.animation = 'rainbow 0.5s linear infinite';
-    
-    // Add a visual indicator for power-up
-    const powerUpText = document.createElement('div');
-    powerUpText.textContent = 'rainbow time !';
-    powerUpText.style.position = 'absolute';
-    powerUpText.style.top = '50px';
-    powerUpText.style.left = '50%';
-    powerUpText.style.transform = 'translateX(-50%)';
-    powerUpText.style.color = 'white';
-    powerUpText.style.fontWeight = 'bold';
-    powerUpText.style.fontSize = '24px';
-    powerUpText.style.textShadow = '0 0 5px #ff0000, 0 0 10px #ff7700, 0 0 15px #ffff00, 0 0 20px #00ff00, 0 0 25px #0000ff, 0 0 30px #8a2be2';
-    powerUpText.style.zIndex = '100';
-    powerUpText.id = 'power-up-text';
-    gameContainer.appendChild(powerUpText);
-    
-    // Remove the text after 2 seconds
-    setTimeout(() => {
-      const textElement = document.getElementById('power-up-text');
-      if (textElement) textElement.remove();
-    }, 2000);
-    
-    // Add rainbow animation style if it doesn't exist
-    if (!document.getElementById('rainbow-animation-style')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'rainbow-animation-style';
-      styleSheet.textContent = `
-        @keyframes rainbow {
-          0% { filter: hue-rotate(0deg) brightness(1.2); }
-          50% { filter: hue-rotate(180deg) brightness(1.5); }
-          100% { filter: hue-rotate(360deg) brightness(1.2); }
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-  }
-
-
-  // Update the keyboard controls in the updateGame function
-  function updateGame() {
-    if (!gameState.gameActive) return;
-
-    // Power-up timer management
-    if (player.isInvincible) {
-      player.invincibilityTimer--;
-      
-      if (player.invincibilityTimer <= 0) {
-        // Reset to normal
-        player.isInvincible = false;
-        player.speed = player.normalSpeed;
-        player.element.style.animation = '';
-        gameState.powerUpActive = false;
-        
-        // Reset power-up trigger at higher threshold for next power-up
-        gameState.powerUpTriggered = false;
-        gameState.powerUpThreshold += 100; // Next power-up at +100 points
-      }
-    }
-
-    player.velocityY += gameState.gravity;
-
-    // Handle player movement with WASD instead of arrow keys
-    if (keys['a'] || keys['A']) {
-      player.velocityX = -player.speed;
-      player.element.style.transform = 'scaleX(-1)'; // Flip horizontally
-    } else if (keys['d'] || keys['D']) {
-      player.velocityX = player.speed;
-      player.element.style.transform = 'scaleX(1)'; // Normal orientation
-    } else {
-      player.velocityX = 0;
-    }
-
-  // Double-check power-up threshold - safety check for bug fix
-    if (!player.isInvincible && !gameState.powerUpTriggered && gameState.score >= gameState.powerUpThreshold) {
-      activatePowerUp();
-      gameState.powerUpTriggered = true;
-    }
-    
-    
-    if ((keys[' '] || keys['Space']) && !player.isJumping) {
-      player.velocityY = -player.jumpForce;
-      player.isJumping = true;
-    }
-
-    player.x += player.velocityX;
-    player.y += player.velocityY;
-
-    if (player.x < 0) player.x = 0;
-
-    // Camera scrolling logic
-    if (player.x > gameContainer.clientWidth / 2 && player.velocityX > 0) {
-      gameState.viewportOffset += player.velocityX;
-      player.x = gameContainer.clientWidth / 2;
-
-      platforms.forEach(platform => platform.element.style.left = (platform.x - gameState.viewportOffset) + 'px');
-      obstacles.forEach(obstacle => obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px');
-      burgers.forEach(burger => burger.element.style.left = (burger.x - gameState.viewportOffset) + 'px');
-
-      if (gameState.lastGeneratedX - gameState.viewportOffset < gameContainer.clientWidth + gameState.generationThreshold) {
-        generateLevelContent();
-      }
-    }
-
-    // Update the visual position of falling obstacles when camera moves
-    obstacles.forEach(obstacle => {
-      if (obstacle.isFalling) {
-        // For falling obstacles, recalculate position based on viewport
-        obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
-      } else {
-        // For static obstacles
-        obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
-      }
-    });
-    
-    // Handle falling obstacle spawning
-    gameState.obstacleSpawnTimer++;
-    if (gameState.obstacleSpawnTimer >= gameState.obstacleSpawnRate) {
-      spawnFallingObstacle();
-      gameState.obstacleSpawnTimer = 0;
-      
-      // Make obstacles spawn faster as score increases
-      gameState.obstacleSpawnRate = Math.max(30, 120 - Math.floor(gameState.score / 50));
-    }
-
-    // Update falling obstacles
-    for (let i = 0; i < obstacles.length; i++) {
-      const obstacle = obstacles[i];
-      
-      if (obstacle.isFalling) {
-        // Apply gravity to falling obstacles
-        obstacle.velocityY += gameState.gravity * 0.5;
-        obstacle.y += obstacle.velocityY;
-        
-        // Update obstacle position on screen
-        obstacle.element.style.top = obstacle.y + 'px';
-        
-        // For falling obstacles, we need to adjust their visual x position when viewport changes
-        const adjustedX = obstacle.x - gameState.viewportOffset;
-        obstacle.element.style.left = adjustedX + 'px';
-        
-        // Remove obstacles that fall off-screen
-        if (obstacle.y > gameContainer.clientHeight) {
-          if (obstacle.element && obstacle.element.parentNode) {
-            gameContainer.removeChild(obstacle.element);
-          }
-          obstacles.splice(i, 1);
-          i--;
-          continue;
-        }
-      }
-      
-      // Check for collision with player
-      const obstacleVisualX = obstacle.x - gameState.viewportOffset;
-      const hitboxReduction = 10; // pixels to reduce from each side
-      
-      // Only check collision if not invincible
-      if (!player.isInvincible && 
-          player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReduction &&
-          player.x + hitboxReduction < obstacleVisualX + obstacle.width - hitboxReduction &&
-          player.y + player.height - hitboxReduction > obstacle.y + hitboxReduction &&
-          player.y + hitboxReduction < obstacle.y + obstacle.height - hitboxReduction) {
-        gameOver();
-        return;
-      }
-      
-      // If invincible, destroy obstacles on collision
-      if (player.isInvincible &&
-          player.x + player.width > obstacleVisualX &&
-          player.x < obstacleVisualX + obstacle.width &&
-          player.y + player.height > obstacle.y &&
-          player.y < obstacle.y + obstacle.height) {
-        // Remove the obstacle
-        if (obstacle.element && obstacle.element.parentNode) {
-          gameContainer.removeChild(obstacle.element);
-        }
-        obstacles.splice(i, 1);
-        i--;
-        continue;
-      }
-    }
-
-    // Fall off screen check
-    if (player.y > gameContainer.clientHeight) {
-      gameOver();
-      return;
-    }
-
-    // Platform collision detection
-    player.isJumping = true;
-    for (let i = 0; i < platforms.length; i++) {
-      const platform = platforms[i];
-
-      if (player.velocityY >= 0 &&
-        player.x + player.width > platform.x - gameState.viewportOffset &&
-        player.x < platform.x - gameState.viewportOffset + platform.width &&
-        player.y + player.height >= platform.y &&
-        player.y + player.height <= platform.y + platform.height + 10) {
-
-        player.y = platform.y - player.height;
-        player.velocityY = 0;
-        player.isJumping = false;
-      }
-    }
-
-    // Burger collection
-    for (let i = 0; i < burgers.length; i++) {
-      const burger = burgers[i];
-
-      if (player.x + player.width > burger.x - gameState.viewportOffset &&
-        player.x < burger.x - gameState.viewportOffset + burger.width &&
-        player.y + player.height > burger.y &&
-        player.y < burger.y + burger.height) {
-
-        gameState.score += 10;
-        scoreElement.textContent = gameState.score;
-
-        // Check if player reached powerUp threshold
-        if (!gameState.powerUpTriggered && gameState.score >= gameState.powerUpThreshold) {
-          activatePowerUp();
-          gameState.powerUpTriggered = true;
-        }
-
-        gameContainer.removeChild(burger.element);
-        burgers.splice(i, 1);
-        i--;
-      }
-    }
-
-
-    player.element.style.left = player.x + 'px';
-    player.element.style.top = player.y + 'px';
-  }
-
-  // Game over function
-  function gameOver() {
-    gameState.gameActive = false;
-    clearInterval(gameState.gameInterval);
-
-    // Clear power-up state immediately on game over
-    player.isInvincible = false;
-    player.speed = player.normalSpeed;
-    player.element.style.animation = '';
-    
-    // Remove power-up visual
-    const powerUpText = document.getElementById('power-up-text');
-    if (powerUpText) powerUpText.remove();
-
-    finalScoreElement.textContent = 'Score: ' + gameState.score;
-    gameOverScreen.style.display = 'flex';
-  }
-
-  // Update the keyboard event listeners
-  document.addEventListener('keydown', (event) => {
-    // Map both WASD and arrow keys to the same actions
-    if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = true;
-    if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = true;
-    
-    // Store original key as well
-    keys[event.key] = true;
-  });
-
-  document.addEventListener('keyup', (event) => {
-    // Map both WASD and arrow keys to the same actions
-    if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = false;
-    if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = false;
-    
-    // Store original key as well
-    keys[event.key] = false;
-  });
-
-  // Generate level content
-  function generateLevelContent() {
-    const startX = gameState.lastGeneratedX;
-    const endX = startX + 1000; // Generate 1000px of content at a time
-    let lastPlatformX = startX;
-    let lastPlatformY = 450; // Track the Y position of the last platform
-    let lastPlatformWidth = 300; // Track the width of the last platform
-    const minGap = 70; // Minimum gap between platforms
-    const maxGap = 130; // Maximum gap between platforms
-    const maxHeightDifference = 80; // Maximum height difference between platforms
-    const minHeightDifference = 30; // Minimum height difference to prevent flat terrain
-    const maxAttempts = 15; // Increased max attempts to place a platform
-
-    // Generate platforms with gaps
-    while (lastPlatformX < endX) {
-      const platformWidth = Math.floor(Math.random() * 120) + 100; // 100-220px width
-      
-      // Calculate a reasonable gap based on the player's jump ability
-      // The gap should be proportional to the player's jump force and speed
-      const jumpDistance = player.speed * (player.jumpForce / gameState.gravity) * 1.9; // Keep the multiplier for longer jumps
-      const gap = Math.floor(Math.random() * (maxGap - minGap)) + minGap;
-      
-      // Ensure the gap is not too large to jump across
-      const actualGap = Math.min(gap, jumpDistance * 0.65); // Keep original gap percentage
-      
-      // Try different Y positions if there's an overlap
-      let platformY = 0;
-      let placed = false;
-      let attempts = 0;
-      
-      while (!placed && attempts < maxAttempts) {
-        // Vary the height, but keep within playable range and ensure it's reachable
-        // Calculate a height that's within reach of the player's jump
-        // Force some height difference to create interesting terrain
-        let heightDifference;
-        if (Math.random() > 0.5) {
-          // Platform higher than previous
-          heightDifference = -(Math.floor(Math.random() * (maxHeightDifference - minHeightDifference)) + minHeightDifference);
-        } else {
-          // Platform lower than previous
-          heightDifference = Math.floor(Math.random() * (maxHeightDifference - minHeightDifference)) + minHeightDifference;
-        }
-        
-        // Ensure we stay within reasonable bounds
-        const minY = Math.max(250, lastPlatformY + heightDifference);
-        const maxY = Math.min(450, lastPlatformY + heightDifference);
-        platformY = Math.min(maxY, Math.max(minY, lastPlatformY + heightDifference));
-        
-        // Check if this position would overlap with any existing platform
-        if (!wouldOverlap(lastPlatformX + lastPlatformWidth + actualGap, platformY, platformWidth, 30)) {
-          placed = true;
-        } else {
-          attempts++;
-        }
-      }
-      
-      if (placed) {
-        createPlatform(lastPlatformX + lastPlatformWidth + actualGap, platformY, platformWidth, 30);
-
-        // Add a burger on some platforms
-        if (Math.random() < 0.5) {
-          const burgerX = (lastPlatformX + lastPlatformWidth + actualGap) + Math.random() * (platformWidth - 30);
-          createBurger(burgerX, platformY - 40);
-        }
-        
-        // Update last platform info for next iteration
-        lastPlatformX = lastPlatformX + lastPlatformWidth + actualGap;
-        lastPlatformY = platformY;
-        lastPlatformWidth = platformWidth;
-      } else {
-        // If we couldn't place a platform after multiple attempts, just move forward
-        // and create a safe platform at a reasonable height
-        const safeY = Math.min(450, Math.max(350, lastPlatformY));
-        const safeGap = Math.min(actualGap, jumpDistance * 0.65);
-        createPlatform(lastPlatformX + lastPlatformWidth + safeGap, safeY, platformWidth, 30);
-        
-        lastPlatformX = lastPlatformX + lastPlatformWidth + safeGap;
-        lastPlatformY = safeY;
-        lastPlatformWidth = platformWidth;
-      }
-    }
-
-    // Update the last generated position
-    gameState.lastGeneratedX = endX;
-  }
-
-  // Restart button
-  restartButton.addEventListener('click', initGame);
-
-  // Start the game
-  initGame();
-</script>
-
+<body>
+    <!-- Simple Header with Navigation -->
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="text-decoration: none;">
+                <h1 class="name">luisncg</h1>
+            </a>
+            <nav>
+                <a href="/" class="nav-link">home</a>
+                <a href="/#projects" class="nav-link">projects</a>
+                <a href="/#fun" class="nav-link">fun</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Game Portal Container -->
+    <div class="game-container" id="game-container">
+        <!-- Game iframe - Initially blank -->
+        <iframe src="about:blank" id="game-frame" class="game-frame" title="Burger Cat Game" allow="autoplay; fullscreen; gamepad"></iframe>
+    </div>
+
+    <script>
+        // Game loading and interaction script
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameContainer = document.getElementById('game-container');
+            const gameFrame = document.getElementById('game-frame');
+            const header = document.querySelector('header');
+            
+            // Make header fade after 3 seconds
+            setTimeout(function() {
+                header.classList.add('fade');
+            }, 3000);
+            
+            // Show header on hover
+            header.addEventListener('mouseenter', function() {
+                header.classList.remove('fade');
+            });
+            
+            // Hide header when mouse leaves
+            header.addEventListener('mouseleave', function() {
+                header.classList.add('fade');
+            });
+            
+            // Hide header when game is clicked
+            gameContainer.addEventListener('click', function() {
+                header.classList.add('fade');
+            });
+            
+            let overlay;
+            let startButton;
+            
+            // Function to create overlay if needed (only used for pause functionality)
+            function createOverlay() {
+                // Create the overlay element
+                overlay = document.createElement('div');
+                overlay.id = 'game-overlay';
+                overlay.className = 'game-overlay';
+                
+                // Add title
+                const title = document.createElement('h2');
+                title.className = 'game-title';
+                title.textContent = 'Burger Cat Adventure';
+                overlay.appendChild(title);
+                
+                // Add description
+                const description = document.createElement('p');
+                description.style = 'margin-bottom: 2rem; max-width: 600px; text-align: center;';
+                description.textContent = 'Help the cat collect delicious burgers while avoiding the dangerous shower heads!';
+                overlay.appendChild(description);
+                
+                // Add resume button
+                startButton = document.createElement('button');
+                startButton.id = 'start-game';
+                startButton.className = 'start-button';
+                startButton.textContent = 'Resume Game';
+                overlay.appendChild(startButton);
+                
+                // Add decorative elements
+                for (let i = 0; i < 3; i++) {
+                    const burger = document.createElement('div');
+                    burger.className = 'burger';
+                    burger.textContent = '🍔';
+                    overlay.appendChild(burger);
+                }
+                
+                const cat = document.createElement('div');
+                cat.className = 'cat-silhouette';
+                cat.textContent = '🐱';
+                overlay.appendChild(cat);
+                
+                // Add overlay to container
+                gameContainer.appendChild(overlay);
+                
+                // Add click listener to resume button
+                startButton.addEventListener('click', function() {
+                    // Hide the overlay
+                    overlay.classList.add('hidden');
+                    startButton.disabled = false;
+                    // Focus the game iframe when resuming
+                    gameFrame.focus();
+                });
+                
+                return overlay;
+            }
+            
+            // Load the game immediately on page load
+            gameFrame.src = 'https://luisncg.github.io/gaming';
+            
+            // Auto-focus the iframe when the game loads
+            gameFrame.onload = function() {
+                // Add a slight delay to ensure the game is fully loaded
+                setTimeout(function() {
+                    gameFrame.focus();
+                    
+                    // Fix for mobile: ensure the page is scrolled to show all controls
+                    window.scrollTo(0, 0);
+                    document.body.style.height = '100%';
+                    document.body.style.overflow = 'hidden';
+                    document.documentElement.style.overflow = 'hidden'; 
+                    document.documentElement.style.height = '100%';
+                    document.body.style.position = 'fixed';
+                    document.body.style.width = '100%';
+                    
+                    // Apply mobile-specific adjustments 
+                    function applyMobileLayoutFix() {
+                        // Get dimensions
+                        const viewportHeight = window.innerHeight;
+                        const viewportWidth = window.innerWidth;
+                        const isMobile = viewportWidth <= 768;
+                        
+                        // First remove any existing adjustments
+                        if (document.getElementById('controls-spacer')) {
+                            document.getElementById('controls-spacer').remove();
+                        }
+                        
+                        // Reset iframe style to default full size
+                        gameFrame.style.height = '100%';
+                        gameFrame.style.width = '100%';
+                        gameFrame.style.bottom = '0';
+                        gameFrame.style.top = '0';
+                        gameFrame.style.transform = 'none';
+                        gameFrame.style.objectFit = 'cover';
+                        
+                        // For mobile devices, create a controlled iframe container
+                        if (isMobile) {
+                            // Calculate optimal size - the black bar occurs because the game 
+                            // has a fixed aspect ratio that doesn't match the mobile screen
+                            const controlsHeight = 70; // Height reserved for game controls
+                            
+                            // Create a colored element that matches the background exactly
+                            const controlsArea = document.createElement('div');
+                            controlsArea.id = 'controls-spacer';
+                            controlsArea.style = `
+                                position: absolute;
+                                bottom: 0;
+                                left: 0;
+                                width: 100%;
+                                height: ${controlsHeight}px;
+                                background-color: ${getComputedStyle(document.documentElement).getPropertyValue('--bg-color')};
+                                z-index: 2;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            `;
+                            
+                            // Add a small hint in the spacer to guide users
+                            const touchHint = document.createElement('div');
+                            touchHint.textContent = "Touch controls area";
+                            touchHint.style = `
+                                color: rgba(255,255,255,0.3);
+                                font-size: 12px;
+                                font-style: italic;
+                            `;
+                            controlsArea.appendChild(touchHint);
+                            gameContainer.appendChild(controlsArea);
+                            
+                            // Adjust frame size to account for controls
+                            gameFrame.style.height = `calc(100% - ${controlsHeight}px)`;
+                            gameFrame.style.bottom = `${controlsHeight}px`;
+                            
+                            // Also fix common iframe scaling issues on mobile
+                            gameFrame.style.transformOrigin = 'top center';
+                            
+                            // Force redraw to prevent flickering
+                            gameContainer.style.transform = 'translateZ(0)';
+                            gameFrame.style.transform = 'translateZ(0)';
+                            
+                            // Add data attributes to help with debugging
+                            gameFrame.dataset.mobileAdjusted = 'true';
+                            gameFrame.dataset.controlsHeight = controlsHeight;
+                        }
+                    }
+                    
+                    // Apply the layout fix
+                    applyMobileLayoutFix();
+                    
+                    // Update on resize and orientation change
+                    window.addEventListener('resize', applyMobileLayoutFix);
+                    window.addEventListener('orientationchange', function() {
+                        // Delay the fix to ensure dimensions have updated after orientation change
+                        setTimeout(applyMobileLayoutFix, 100);
+                    });
+                    
+                    // Try to prevent pull-to-refresh and other mobile gestures
+                    document.body.addEventListener('touchmove', function(e) {
+                        e.preventDefault();
+                    }, { passive: false });
+                    
+                    // Ensure header doesn't push content down
+                    document.querySelector('header').style.position = 'fixed';
+                    document.querySelector('header').style.zIndex = '999';
+                    
+                    console.log('Game frame focused and mobile optimizations applied');
+                }, 500);
+            };
+            
+            // Add a visible instruction for mobile devices
+            const mobileInstructions = document.createElement('div');
+            mobileInstructions.style = `
+                position: fixed; 
+                bottom: 20px; 
+                left: 50%; 
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.7); 
+                padding: 10px 20px; 
+                border-radius: 20px;
+                font-size: 14px;
+                z-index: 5;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 1.5s ease;
+            `;
+            mobileInstructions.textContent = "Tap screen once if controls don't respond";
+            document.body.appendChild(mobileInstructions);
+            
+            // Show the instructions briefly after the game loads
+            setTimeout(function() {
+                mobileInstructions.style.opacity = "1";
+                setTimeout(function() {
+                    mobileInstructions.style.opacity = "0";
+                }, 4000);
+            }, 2000);
+            
+            // Also focus when clicking anywhere on the document
+            document.addEventListener('click', function() {
+                if (!overlay || overlay.classList.contains('hidden')) {
+                    gameFrame.focus();
+                }
+            });
+
+            // Add escape key to show overlay/pause game
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (!overlay) {
+                        // Create overlay if it doesn't exist
+                        overlay = createOverlay();
+                        startButton = overlay.querySelector('#start-game');
+                    } else if (overlay.classList.contains('hidden')) {
+                        // Show overlay if it's hidden
+                        overlay.classList.remove('hidden');
+                        startButton.disabled = false;
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html> 
