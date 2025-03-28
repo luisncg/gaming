@@ -1,882 +1,312 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%; margin: 0; padding: 0;">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>burger</title>
-  <!-- Viewport meta tag to control scaling on mobile -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  
-  <style>
-    /* General styles */
-    body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #333;
-      font-family: Arial, sans-serif;
-    }
-
-    /* Game container */
-    #game-container {
-      position: relative;
-      width: 800px;
-      height: 500px;
-      border: 4px solid #222;
-      overflow: hidden;
-      background-color: #87CEEB;
-    }
-
-    /* Player */
-    #player {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background-color: transparent;
-      background-image: url('https://i.imgur.com/LrO0MTY.png'); /* Replace with actual URL */
-      background-size: cover;
-      z-index: 10;
-    }
-
-    /* Platforms */
-    .platform {
-      position: absolute;
-      background-color: #55AA55;
-      border-top: 4px solid #338833;
-    }
-
-    /* Obstacles */
-    .obstacle {
-      position: absolute;
-      width: 45px; /* Adjust as needed */
-      height: 45px; /* Adjust as needed */
-      background-image: url('https://i.imgur.com/WI3ssR6.png'); /* Your uploaded image */
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-
-    /* Burgers */
-    .burger {
-      position: absolute;
-      width: 44px;
-      height: 44px; /* Make it square for a more natural image look */
-      z-index: 5;
-      background-color: transparent; /* Remove the old color */
-      background-image: url('https://i.imgur.com/phNixoY.png'); /* Replace with actual URL */
-      background-size: cover; /* Ensures it fits the element */
-      background-position: center;
-      border-radius: 5px; /* Slight rounding to make it look good */
-      border: none; /* Remove previous border */
-      box-shadow: none; /* Remove inner shadow */
-    }
-
-    /* Score Display */
-    #score-container {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    #sun {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background-image: url('https://i.imgur.com/8MUlF6l.png'); /* You'll need to replace with actual URL */
-      background-size: cover;
-      z-index: 5;
-      animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-
-    /* Game Over Screen */
-    #game-over {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 36px;
-      z-index: 100;
-    }
-
-    #final-score {
-      margin: 20px 0;
-      font-size: 24px;
-    }
-
-    #restart-button {
-      padding: 10px 20px;
-      font-size: 18px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #restart-button:hover {
-      background-color: #45a049;
-    }
-
-    /* Parallax Background */
-    #parallax-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-
-    .cloud {
-      position: absolute;
-      background-image: url('https://i.imgur.com/h8ISXTt.png'); /* Replace with actual URL */
-      background-size: contain;
-      background-repeat: no-repeat;
-      z-index: 2;
-    }
-
-    .cloud1 {
-      top: 50px;
-      width: 100px;
-      height: 60px;
-      animation: cloudFloat1 60s linear infinite;
-    }
-
-    .cloud2 {
-      top: 100px;
-      width: 120px;
-      height: 70px;
-      animation: cloudFloat2 45s linear infinite;
-    }
-
-    .cloud3 {
-      top: 30px;
-      width: 90px;
-      height: 50px;
-      animation: cloudFloat3 75s linear infinite;
-    }
-
-    @keyframes cloudFloat1 {
-      0% { left: 100%; }
-      100% { left: -100px; }
-    }
-    
-    @keyframes cloudFloat2 {
-      0% { left: 100%; }
-      100% { left: -120px; }
-    }
-    
-    @keyframes cloudFloat3 {
-      0% { left: 100%; }
-      100% { left: -90px; }
-    }
-
-    /* Touch Controls */
-    #touch-controls {
-      position: absolute;
-      bottom: 80px; /* Increased from 20px to 80px to move up */
-      width: 100%;
-      display: none; /* Hide by default */
-      justify-content: space-between;
-      z-index: 50;
-    }
-
-    .touch-button {
-      width: 60px;
-      height: 60px;
-      background-color: rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    #left {
-      margin-left: 20px;
-    }
-
-    #right {
-      margin-right: 20px;
-    }
-
-    #up {
-      position: absolute;
-      bottom: 10px; /* Added small bottom spacing */
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    /* Rainbow animation for power-up */
-    @keyframes rainbow {
-      0% { filter: hue-rotate(0deg) brightness(1.2); }
-      50% { filter: hue-rotate(180deg) brightness(1.5); }
-      100% { filter: hue-rotate(360deg) brightness(1.2); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniCraft - Single File</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
+        canvas { display: block; }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background-color: white;
+            border: 1px solid black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* Important so it doesn't interfere with clicking */
+        }
+        #instructions {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px;
+            font-family: sans-serif;
+            font-size: 14px;
+        }
+    </style>
 </head>
-<body style="height: 100%; margin: 0; padding: 0; overflow: hidden;">
+<body>
+    <div id="instructions">
+        WASD: Move<br>
+        Space: Jump<br>
+        Mouse: Look<br>
+        Click: Lock Pointer<br>
+        Left Click: Remove Block<br>
+        Right Click: Place Block
+    </div>
+    <div id="crosshair"></div>
+    <canvas id="gameCanvas"></canvas>
 
-<!-- Your game container -->
-<div id="game-container" style="height: 100%; width: 100%; position: relative;">
+    <!-- Include Three.js Library via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-  <div id="sun"></div>
+    <script>
+        // --- Basic Setup ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // Sky blue background
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true; // Enable shadows
 
-  <div id="parallax-bg">
-    <div class="cloud cloud1"></div>
-    <div class="cloud cloud2"></div>
-    <div class="cloud cloud3"></div>
-  </div>
-  
-  <div id="player"></div>
-  <div id="score-container">Score: <span id="score">0</span></div>
-  <div id="game-over">
-    Game Over!
-    <div id="final-score">Score: 0</div>
-    <button id="restart-button">Play Again</button>
-  </div>
-  
-  <div id="controls"></div>
-
-  <!-- Touchscreen Controls -->
-  <div id="touch-controls">
-    <div id="left" class="touch-button">←</div>
-    <div id="right" class="touch-button">→</div>
-    <div id="up" class="touch-button">↑</div>
-  </div>
-</div>
-
-<script>
-  // Check if device is touch-enabled and show touch controls if it is
-  function isTouchDevice() {
-    return (('ontouchstart' in window) ||
-       (navigator.maxTouchPoints > 0) ||
-       (navigator.msMaxTouchPoints > 0));
-  }
-  
-  // Show touch controls only on touch devices
-  if (isTouchDevice()) {
-    document.getElementById('touch-controls').style.display = 'flex';
-  }
-
-  // Initialize cloud positions with staggered starting points
-  function initClouds() {
-    const cloud1 = document.querySelector('.cloud1');
-    const cloud2 = document.querySelector('.cloud2');
-    const cloud3 = document.querySelector('.cloud3');
-    
-    // Set initial positions with animation delay to stagger them
-    cloud1.style.animationDelay = '0s';
-    cloud2.style.animationDelay = '-15s'; // Start 15 seconds into the animation
-    cloud3.style.animationDelay = '-30s'; // Start 30 seconds into the animation
-  }
-
-  // Call cloud initialization when window loads
-  window.addEventListener('load', initClouds);
-
-  // Game variables
-  const player = {
-    element: document.getElementById('player'),
-    x: 50,
-    y: 300,
-    width: 40,
-    height: 40,
-    velocityX: 0,
-    velocityY: 0,
-    speed: 6,
-    jumpForce: 17,
-    isJumping: false,
-    isInvincible: false,
-    invincibilityTimer: 0,
-    normalSpeed: 6
-  };
-
-  const gameState = {
-    gravity: 0.8,
-    score: 0,
-    gameActive: true,
-    gameInterval: null,
-    lastGeneratedX: 800,
-    viewportOffset: 0,
-    generationThreshold: 500,
-    obstacleSpawnTimer: 0,
-    obstacleSpawnRate: 120, // Spawn a new obstacle every 120 frames (about 2 seconds)
-    powerUpDuration: 300, // 5 seconds (60 frames per second × 5)
-    powerUpThreshold: 50, // Score needed to trigger power-up
-    powerUpActive: false,
-    powerUpTriggered: false // To ensure it only triggers once when threshold is reached
-  };
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 15, 10);
+        directionalLight.castShadow = true;
+        // Configure shadow properties for better quality
+        directionalLight.shadow.mapSize.width = 1024;
+        directionalLight.shadow.mapSize.height = 1024;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
+        directionalLight.shadow.camera.left = -20;
+        directionalLight.shadow.camera.right = 20;
+        directionalLight.shadow.camera.top = 20;
+        directionalLight.shadow.camera.bottom = -20;
+        scene.add(directionalLight);
 
 
-  let platforms = [];
-  let obstacles = [];
-  let burgers = [];
-  let keys = {};
+        // --- World Data and Block Geometry ---
+        const world = {}; // Use an object to store block data: key="x,y,z", value=mesh
+        const blockSize = 1;
+        const blockGeometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
 
-  const gameContainer = document.getElementById('game-container');
-  const scoreElement = document.getElementById('score');
-  const gameOverScreen = document.getElementById('game-over');
-  const finalScoreElement = document.getElementById('final-score');
-  const restartButton = document.getElementById('restart-button');
+        // --- Texture (Embedded Base64) ---
+        // Simple 16x16 dirt/grass texture data (replace with your own if desired)
+        const textureData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABYSURBVDhPYxgFo2AUDFRgA/4zEP4zGEBgYGBgYDhAxI9BGhAG4f/BobGw/zMU/jMUMAygMDBQ+H8g/A8MDDxAGQYGhv8g/Q8jEwMDE6AGYxAGYyAFAAeyU3l4TWRXAAAAAElFTkSuQmCC'; // Very simple placeholder texture
+        const textureLoader = new THREE.TextureLoader();
+        const blockTexture = textureLoader.load(textureData);
+        blockTexture.magFilter = THREE.NearestFilter; // Pixelated look
+        blockTexture.minFilter = THREE.NearestFilter;
+        const blockMaterial = new THREE.MeshLambertMaterial({ map: blockTexture });
 
-  // Touch controls
-  const leftButton = document.getElementById('left');
-  const rightButton = document.getElementById('right');
-  const upButton = document.getElementById('up');
+        // Function to add a block
+        function addBlock(x, y, z) {
+            const coordKey = `${x},${y},${z}`;
+            if (world[coordKey]) return; // Don't place if already occupied
 
-  // Handle touch controls
-  function addTouchControl(button, action, isKeyDown) {
-    button.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // Prevent scrolling
-      keys[action] = isKeyDown;
-    });
-
-    button.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      keys[action] = !isKeyDown;
-    });
-  }
-
-  // Bind touch controls
-  addTouchControl(leftButton, 'a', true);
-  addTouchControl(rightButton, 'd', true);
-  addTouchControl(upButton, 'Space', true);
-
-  // Helper function to check if a new platform would overlap with existing ones
-  function wouldOverlap(newX, newY, newWidth, newHeight, verticalMargin = 80) {
-    return platforms.some(platform => {
-      // Check horizontal overlap
-      const horizontalOverlap = 
-        newX + newWidth > platform.x && 
-        newX < platform.x + platform.width;
-      
-      // Check vertical overlap with increased margin
-      // This prevents platforms from being too close vertically
-      const verticalOverlap = 
-        Math.abs((newY + newHeight / 2) - (platform.y + platform.height / 2)) < verticalMargin;
-      
-      return horizontalOverlap && verticalOverlap;
-    });
-  }
-
-
-  // Initialize game
-  function initGame() {
-    gameState.gameActive = true;
-    gameState.score = 0;
-    gameState.viewportOffset = 0;
-    gameState.lastGeneratedX = 800;
-    scoreElement.textContent = '0';
-    gameOverScreen.style.display = 'none';
-
-    // Reset power-up state
-    player.isInvincible = false;
-    player.invincibilityTimer = 0;
-    player.speed = player.normalSpeed;
-    gameState.powerUpActive = false;
-    gameState.powerUpTriggered = false;
-    gameState.powerUpThreshold = 50; // Reset to initial threshold
-    
-    // Remove any lingering power-up text
-    const powerUpText = document.getElementById('power-up-text');
-    if (powerUpText) powerUpText.remove();
-    
-    // Reset player animation
-    player.element.style.animation = '';
-
-    player.x = 50;
-    player.y = 300;
-    player.velocityX = 0;
-    player.velocityY = 0;
-    player.element.style.left = player.x + 'px';
-    player.element.style.top = player.y + 'px';
-
-    platforms = [];
-    obstacles = [];
-    burgers = [];
-    
-    document.querySelectorAll('.platform, .obstacle, .burger').forEach(element => element.remove());
-
-    createPlatform(0, 450, 300, 50);
-    createPlatform(350, 450, 300, 50);
-    createPlatform(700, 450, 300, 50);
-    createPlatform(500, 350, 200, 30);
-    
-    createBurger(250, 415);
-    createBurger(550, 315);
-
-    generateLevelContent();
-    gameState.gameInterval = setInterval(updateGame, 16);
-  }
-
-  // Create platform
-  function createPlatform(x, y, width, height) {
-    const platform = document.createElement('div');
-    platform.className = 'platform';
-    platform.style.left = (x - gameState.viewportOffset) + 'px';
-    platform.style.top = y + 'px';
-    platform.style.width = width + 'px';
-    platform.style.height = height + 'px';
-
-    gameContainer.appendChild(platform);
-
-    platforms.push({ element: platform, x, y, width, height });
-  }
-
-  // Create obstacle
-  function createObstacle(x, y, width = 45, height = 45, isFalling = false) {
-    const obstacle = document.createElement('div');
-    obstacle.className = 'obstacle';
-    obstacle.style.width = width + 'px';
-    obstacle.style.height = height + 'px';
-    
-    // For falling obstacles, position relative to viewport offset immediately
-    const posX = isFalling ? x : (x - gameState.viewportOffset);
-    
-    obstacle.style.left = posX + 'px';
-    obstacle.style.top = y + 'px';
-    obstacle.style.backgroundImage = "url('https://i.imgur.com/WI3ssR6.png')";
-    obstacle.style.backgroundSize = "cover";
-    obstacle.style.position = "absolute";
-
-    gameContainer.appendChild(obstacle);
-
-    obstacles.push({ 
-      element: obstacle, 
-      x: isFalling ? x + gameState.viewportOffset : x, // Store the absolute x for falling obstacles
-      y, 
-      width, 
-      height, 
-      isFalling, 
-      velocityY: 0,
-      fallSpeed: Math.random() * 2 + 3 // Random fall speed between 3-5
-    });
-  }
-
-  // Add a function to spawn falling obstacles
-  function spawnFallingObstacle() {
-    // Calculate a position within the current visible area (viewport-relative)
-    const viewportWidth = gameContainer.clientWidth;
-    const randomX = Math.random() * viewportWidth;
-    createObstacle(randomX, -50, 45, 45, true); // Start above the screen
-  }
-
-  // Create burger
-  function createBurger(x, y) {
-    // Check if the burger would overlap an obstacle
-    const isOnObstacle = obstacles.some(obstacle => 
-      x + 30 > obstacle.x && x < obstacle.x + obstacle.width &&
-      y + 30 > obstacle.y && y < obstacle.y + obstacle.height
-    );
-
-    // If it would overlap, adjust its position to be just above the obstacle
-    if (isOnObstacle) {
-      y -= 40; // Moves the burger up to avoid overlap
-    }
-
-    const burger = document.createElement('div');
-    burger.className = 'burger';
-    burger.style.left = (x - gameState.viewportOffset) + 'px';
-    burger.style.top = y + 'px';
-
-    gameContainer.appendChild(burger);
-
-    burgers.push({ element: burger, x, y, width: 30, height: 30 });
-  }
-
-  // ADD THIS NEW FUNCTION DIRECTLY AFTER THE createBurger FUNCTION:
-  function activatePowerUp() {
-    player.isInvincible = true;
-    player.invincibilityTimer = gameState.powerUpDuration;
-    player.speed = player.normalSpeed * 1.5; // 50% speed boost
-    gameState.powerUpActive = true;
-    
-    // Visual effects for power-up
-    player.element.style.animation = 'rainbow 0.5s linear infinite';
-    
-    // Add a visual indicator for power-up
-    const powerUpText = document.createElement('div');
-    powerUpText.textContent = 'rainbow time !';
-    powerUpText.style.position = 'absolute';
-    powerUpText.style.top = '50px';
-    powerUpText.style.left = '50%';
-    powerUpText.style.transform = 'translateX(-50%)';
-    powerUpText.style.color = 'white';
-    powerUpText.style.fontWeight = 'bold';
-    powerUpText.style.fontSize = '24px';
-    powerUpText.style.textShadow = '0 0 5px #ff0000, 0 0 10px #ff7700, 0 0 15px #ffff00, 0 0 20px #00ff00, 0 0 25px #0000ff, 0 0 30px #8a2be2';
-    powerUpText.style.zIndex = '100';
-    powerUpText.id = 'power-up-text';
-    gameContainer.appendChild(powerUpText);
-    
-    // Remove the text after 2 seconds
-    setTimeout(() => {
-      const textElement = document.getElementById('power-up-text');
-      if (textElement) textElement.remove();
-    }, 2000);
-    
-    // Add rainbow animation style if it doesn't exist
-    if (!document.getElementById('rainbow-animation-style')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'rainbow-animation-style';
-      styleSheet.textContent = `
-        @keyframes rainbow {
-          0% { filter: hue-rotate(0deg) brightness(1.2); }
-          50% { filter: hue-rotate(180deg) brightness(1.5); }
-          100% { filter: hue-rotate(360deg) brightness(1.2); }
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-  }
-
-
-  // Update the keyboard controls in the updateGame function
-  function updateGame() {
-    if (!gameState.gameActive) return;
-
-    // Power-up timer management
-    if (player.isInvincible) {
-      player.invincibilityTimer--;
-      
-      if (player.invincibilityTimer <= 0) {
-        // Reset to normal
-        player.isInvincible = false;
-        player.speed = player.normalSpeed;
-        player.element.style.animation = '';
-        gameState.powerUpActive = false;
-        
-        // Reset power-up trigger at higher threshold for next power-up
-        gameState.powerUpTriggered = false;
-        gameState.powerUpThreshold += 100; // Next power-up at +100 points
-      }
-    }
-
-    player.velocityY += gameState.gravity;
-
-    // Handle player movement with WASD instead of arrow keys
-    if (keys['a'] || keys['A']) {
-      player.velocityX = -player.speed;
-      player.element.style.transform = 'scaleX(-1)'; // Flip horizontally
-    } else if (keys['d'] || keys['D']) {
-      player.velocityX = player.speed;
-      player.element.style.transform = 'scaleX(1)'; // Normal orientation
-    } else {
-      player.velocityX = 0;
-    }
-
-  // Double-check power-up threshold - safety check for bug fix
-    if (!player.isInvincible && !gameState.powerUpTriggered && gameState.score >= gameState.powerUpThreshold) {
-      activatePowerUp();
-      gameState.powerUpTriggered = true;
-    }
-    
-    
-    if ((keys[' '] || keys['Space']) && !player.isJumping) {
-      player.velocityY = -player.jumpForce;
-      player.isJumping = true;
-    }
-
-    player.x += player.velocityX;
-    player.y += player.velocityY;
-
-    if (player.x < 0) player.x = 0;
-
-    // Camera scrolling logic
-    if (player.x > gameContainer.clientWidth / 2 && player.velocityX > 0) {
-      gameState.viewportOffset += player.velocityX;
-      player.x = gameContainer.clientWidth / 2;
-
-      platforms.forEach(platform => platform.element.style.left = (platform.x - gameState.viewportOffset) + 'px');
-      obstacles.forEach(obstacle => obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px');
-      burgers.forEach(burger => burger.element.style.left = (burger.x - gameState.viewportOffset) + 'px');
-
-      if (gameState.lastGeneratedX - gameState.viewportOffset < gameContainer.clientWidth + gameState.generationThreshold) {
-        generateLevelContent();
-      }
-    }
-
-    // Update the visual position of falling obstacles when camera moves
-    obstacles.forEach(obstacle => {
-      if (obstacle.isFalling) {
-        // For falling obstacles, recalculate position based on viewport
-        obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
-      } else {
-        // For static obstacles
-        obstacle.element.style.left = (obstacle.x - gameState.viewportOffset) + 'px';
-      }
-    });
-    
-    // Handle falling obstacle spawning
-    gameState.obstacleSpawnTimer++;
-    if (gameState.obstacleSpawnTimer >= gameState.obstacleSpawnRate) {
-      spawnFallingObstacle();
-      gameState.obstacleSpawnTimer = 0;
-      
-      // Make obstacles spawn faster as score increases
-      gameState.obstacleSpawnRate = Math.max(30, 120 - Math.floor(gameState.score / 50));
-    }
-
-    // Update falling obstacles
-    for (let i = 0; i < obstacles.length; i++) {
-      const obstacle = obstacles[i];
-      
-      if (obstacle.isFalling) {
-        // Apply gravity to falling obstacles
-        obstacle.velocityY += gameState.gravity * 0.5;
-        obstacle.y += obstacle.velocityY;
-        
-        // Update obstacle position on screen
-        obstacle.element.style.top = obstacle.y + 'px';
-        
-        // For falling obstacles, we need to adjust their visual x position when viewport changes
-        const adjustedX = obstacle.x - gameState.viewportOffset;
-        obstacle.element.style.left = adjustedX + 'px';
-        
-        // Remove obstacles that fall off-screen
-        if (obstacle.y > gameContainer.clientHeight) {
-          if (obstacle.element && obstacle.element.parentNode) {
-            gameContainer.removeChild(obstacle.element);
-          }
-          obstacles.splice(i, 1);
-          i--;
-          continue;
-        }
-      }
-      
-      // Check for collision with player
-      const obstacleVisualX = obstacle.x - gameState.viewportOffset;
-      const hitboxReduction = 10; // pixels to reduce from each side
-      
-      // Only check collision if not invincible
-      if (!player.isInvincible && 
-          player.x + player.width - hitboxReduction > obstacleVisualX + hitboxReduction &&
-          player.x + hitboxReduction < obstacleVisualX + obstacle.width - hitboxReduction &&
-          player.y + player.height - hitboxReduction > obstacle.y + hitboxReduction &&
-          player.y + hitboxReduction < obstacle.y + obstacle.height - hitboxReduction) {
-        gameOver();
-        return;
-      }
-      
-      // If invincible, destroy obstacles on collision
-      if (player.isInvincible &&
-          player.x + player.width > obstacleVisualX &&
-          player.x < obstacleVisualX + obstacle.width &&
-          player.y + player.height > obstacle.y &&
-          player.y < obstacle.y + obstacle.height) {
-        // Remove the obstacle
-        if (obstacle.element && obstacle.element.parentNode) {
-          gameContainer.removeChild(obstacle.element);
-        }
-        obstacles.splice(i, 1);
-        i--;
-        continue;
-      }
-    }
-
-    // Fall off screen check
-    if (player.y > gameContainer.clientHeight) {
-      gameOver();
-      return;
-    }
-
-    // Platform collision detection
-    player.isJumping = true;
-    for (let i = 0; i < platforms.length; i++) {
-      const platform = platforms[i];
-
-      if (player.velocityY >= 0 &&
-        player.x + player.width > platform.x - gameState.viewportOffset &&
-        player.x < platform.x - gameState.viewportOffset + platform.width &&
-        player.y + player.height >= platform.y &&
-        player.y + player.height <= platform.y + platform.height + 10) {
-
-        player.y = platform.y - player.height;
-        player.velocityY = 0;
-        player.isJumping = false;
-      }
-    }
-
-    // Burger collection
-    for (let i = 0; i < burgers.length; i++) {
-      const burger = burgers[i];
-
-      if (player.x + player.width > burger.x - gameState.viewportOffset &&
-        player.x < burger.x - gameState.viewportOffset + burger.width &&
-        player.y + player.height > burger.y &&
-        player.y < burger.y + burger.height) {
-
-        gameState.score += 10;
-        scoreElement.textContent = gameState.score;
-
-        // Check if player reached powerUp threshold
-        if (!gameState.powerUpTriggered && gameState.score >= gameState.powerUpThreshold) {
-          activatePowerUp();
-          gameState.powerUpTriggered = true;
+            const voxel = new THREE.Mesh(blockGeometry, blockMaterial);
+            voxel.position.set(x + blockSize / 2, y + blockSize / 2, z + blockSize / 2); // Center the block on the coordinate
+            voxel.castShadow = true;
+            voxel.receiveShadow = true;
+            scene.add(voxel);
+            world[coordKey] = voxel;
         }
 
-        gameContainer.removeChild(burger.element);
-        burgers.splice(i, 1);
-        i--;
-      }
-    }
-
-
-    player.element.style.left = player.x + 'px';
-    player.element.style.top = player.y + 'px';
-  }
-
-  // Game over function
-  function gameOver() {
-    gameState.gameActive = false;
-    clearInterval(gameState.gameInterval);
-
-    // Clear power-up state immediately on game over
-    player.isInvincible = false;
-    player.speed = player.normalSpeed;
-    player.element.style.animation = '';
-    
-    // Remove power-up visual
-    const powerUpText = document.getElementById('power-up-text');
-    if (powerUpText) powerUpText.remove();
-
-    finalScoreElement.textContent = 'Score: ' + gameState.score;
-    gameOverScreen.style.display = 'flex';
-  }
-
-  // Update the keyboard event listeners
-  document.addEventListener('keydown', (event) => {
-    // Map both WASD and arrow keys to the same actions
-    if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = true;
-    if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = true;
-    
-    // Store original key as well
-    keys[event.key] = true;
-  });
-
-  document.addEventListener('keyup', (event) => {
-    // Map both WASD and arrow keys to the same actions
-    if (event.key === 'a' || event.key === 'A') keys['ArrowLeft'] = false;
-    if (event.key === 'd' || event.key === 'D') keys['ArrowRight'] = false;
-    
-    // Store original key as well
-    keys[event.key] = false;
-  });
-
-  // Generate level content
-  function generateLevelContent() {
-    const startX = gameState.lastGeneratedX;
-    const endX = startX + 1000; // Generate 1000px of content at a time
-    let lastPlatformX = startX;
-    let lastPlatformY = 450; // Track the Y position of the last platform
-    let lastPlatformWidth = 300; // Track the width of the last platform
-    const minGap = 70; // Minimum gap between platforms
-    const maxGap = 130; // Maximum gap between platforms
-    const maxHeightDifference = 80; // Maximum height difference between platforms
-    const minHeightDifference = 30; // Minimum height difference to prevent flat terrain
-    const maxAttempts = 15; // Increased max attempts to place a platform
-
-    // Generate platforms with gaps
-    while (lastPlatformX < endX) {
-      const platformWidth = Math.floor(Math.random() * 120) + 100; // 100-220px width
-      
-      // Calculate a reasonable gap based on the player's jump ability
-      // The gap should be proportional to the player's jump force and speed
-      const jumpDistance = player.speed * (player.jumpForce / gameState.gravity) * 1.9; // Keep the multiplier for longer jumps
-      const gap = Math.floor(Math.random() * (maxGap - minGap)) + minGap;
-      
-      // Ensure the gap is not too large to jump across
-      const actualGap = Math.min(gap, jumpDistance * 0.65); // Keep original gap percentage
-      
-      // Try different Y positions if there's an overlap
-      let platformY = 0;
-      let placed = false;
-      let attempts = 0;
-      
-      while (!placed && attempts < maxAttempts) {
-        // Vary the height, but keep within playable range and ensure it's reachable
-        // Calculate a height that's within reach of the player's jump
-        // Force some height difference to create interesting terrain
-        let heightDifference;
-        if (Math.random() > 0.5) {
-          // Platform higher than previous
-          heightDifference = -(Math.floor(Math.random() * (maxHeightDifference - minHeightDifference)) + minHeightDifference);
-        } else {
-          // Platform lower than previous
-          heightDifference = Math.floor(Math.random() * (maxHeightDifference - minHeightDifference)) + minHeightDifference;
+        // Function to remove a block
+        function removeBlock(x, y, z) {
+            const coordKey = `${x},${y},${z}`;
+            const blockToRemove = world[coordKey];
+            if (blockToRemove) {
+                scene.remove(blockToRemove);
+                blockToRemove.geometry.dispose(); // Clean up geometry
+                // blockToRemove.material.dispose(); // Don't dispose shared material
+                delete world[coordKey];
+            }
         }
-        
-        // Ensure we stay within reasonable bounds
-        const minY = Math.max(250, lastPlatformY + heightDifference);
-        const maxY = Math.min(450, lastPlatformY + heightDifference);
-        platformY = Math.min(maxY, Math.max(minY, lastPlatformY + heightDifference));
-        
-        // Check if this position would overlap with any existing platform
-        if (!wouldOverlap(lastPlatformX + lastPlatformWidth + actualGap, platformY, platformWidth, 30)) {
-          placed = true;
-        } else {
-          attempts++;
+
+        // --- Initial World Generation (Simple Flat Plane) ---
+        const worldSize = 10; // 10x10 plane
+        for (let x = -worldSize / 2; x < worldSize / 2; x++) {
+            for (let z = -worldSize / 2; z < worldSize / 2; z++) {
+                addBlock(x, -1, z); // Ground level at y = -1
+            }
         }
-      }
-      
-      if (placed) {
-        createPlatform(lastPlatformX + lastPlatformWidth + actualGap, platformY, platformWidth, 30);
 
-        // Add a burger on some platforms
-        if (Math.random() < 0.5) {
-          const burgerX = (lastPlatformX + lastPlatformWidth + actualGap) + Math.random() * (platformWidth - 30);
-          createBurger(burgerX, platformY - 40);
+        // Add a central block for reference
+        addBlock(0, 0, 0);
+
+
+        // --- Player Controls ---
+        const player = {
+            height: 1.8,
+            speed: 0.08,
+            turnSpeed: 0.002,
+            jumpVelocity: 0.15,
+            velocity: new THREE.Vector3(),
+            onGround: false
+        };
+        camera.position.set(0, player.height, 5); // Start position
+
+        const keys = {};
+        document.addEventListener('keydown', (event) => { keys[event.code] = true; });
+        document.addEventListener('keyup', (event) => { keys[event.code] = false; });
+
+        let pointerLocked = false;
+        document.addEventListener('mousedown', () => {
+            if (!pointerLocked) {
+                document.body.requestPointerLock();
+            }
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            pointerLocked = document.pointerLockElement === document.body;
+            document.getElementById('instructions').style.display = pointerLocked ? 'none' : 'block';
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (!pointerLocked) return;
+            camera.rotation.y -= event.movementX * player.turnSpeed;
+            camera.rotation.x -= event.movementY * player.turnSpeed;
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x)); // Clamp vertical look
+        });
+
+        // --- Block Interaction (Raycasting) ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2(); // Normalized device coordinates (-1 to +1)
+
+        document.addEventListener('click', (event) => {
+            if (!pointerLocked) return; // Only interact when pointer is locked
+
+            // Calculate mouse position in normalized device coordinates
+            mouse.x = 0; // Center of screen
+            mouse.y = 0; // Center of screen
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(Object.values(world)); // Check against world blocks
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+
+                if (event.button === 0) { // Left Click: Remove Block
+                    const pos = intersect.object.position.clone().subScalar(blockSize / 2); // Get block corner coordinate
+                    removeBlock(pos.x, pos.y, pos.z);
+                } else if (event.button === 2) { // Right Click: Place Block
+                    // Calculate position for the new block based on the face normal
+                    const pos = intersect.object.position.clone().subScalar(blockSize / 2);
+                    const normal = intersect.face.normal;
+                    pos.add(normal); // Place adjacent to the clicked face
+                    addBlock(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z));
+                }
+            }
+        });
+        // Prevent context menu on right-click
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+        // --- Physics and Movement Update ---
+        const gravity = 0.005;
+        const checkCollision = (pos) => {
+            // Simple AABB collision check (very basic)
+            const playerMin = pos.clone().sub(new THREE.Vector3(0.3, player.height, 0.3));
+            const playerMax = pos.clone().add(new THREE.Vector3(0.3, 0, 0.3));
+
+            for (let x = Math.floor(playerMin.x); x <= Math.ceil(playerMax.x); x++) {
+                for (let y = Math.floor(playerMin.y); y <= Math.ceil(playerMax.y); y++) {
+                    for (let z = Math.floor(playerMin.z); z <= Math.ceil(playerMax.z); z++) {
+                        const coordKey = `${x},${y},${z}`;
+                        if (world[coordKey]) {
+                             // Check AABB intersection
+                             const blockMin = new THREE.Vector3(x, y, z);
+                             const blockMax = blockMin.clone().addScalar(blockSize);
+                             if (playerMax.x > blockMin.x && playerMin.x < blockMax.x &&
+                                 playerMax.y > blockMin.y && playerMin.y < blockMax.y &&
+                                 playerMax.z > blockMin.z && playerMin.z < blockMax.z)
+                             {
+                                 return true; // Collision detected
+                             }
+                        }
+                    }
+                }
+            }
+            return false; // No collision
+        };
+
+
+        // --- Animation Loop ---
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta(); // Use delta time if needed for frame-rate independence (less critical here)
+
+            if (pointerLocked) {
+                const moveSpeed = player.speed;
+                const moveDirection = new THREE.Vector3();
+
+                // Get forward/right directions based on camera's Y rotation
+                const forward = new THREE.Vector3();
+                camera.getWorldDirection(forward);
+                forward.y = 0; // Keep movement horizontal
+                forward.normalize();
+                const right = new THREE.Vector3().crossVectors(camera.up, forward).normalize();
+
+                if (keys['KeyW']) moveDirection.add(forward);
+                if (keys['KeyS']) moveDirection.sub(forward);
+                if (keys['KeyA']) moveDirection.add(right); // Strafe left (camera right is negative X)
+                if (keys['KeyD']) moveDirection.sub(right); // Strafe right
+
+                moveDirection.normalize().multiplyScalar(moveSpeed);
+
+                // Apply gravity
+                player.velocity.y -= gravity;
+
+                // Attempt movement + collision detection
+                const nextPos = camera.position.clone().add(moveDirection);
+                nextPos.y += player.velocity.y; // Apply vertical velocity separately
+
+                // Basic Collision Detection/Response (Simplified)
+                let tempPos = camera.position.clone();
+                let collidedX = false, collidedY = false, collidedZ = false;
+
+                // Check Y collision first
+                tempPos.y = nextPos.y;
+                if (checkCollision(tempPos)) {
+                     // If moving down and collided, we are on ground
+                    if (player.velocity.y < 0) {
+                         player.onGround = true;
+                         // Snap to ground level slightly above the block
+                         tempPos.y = Math.floor(camera.position.y) - 0.01 + player.height;
+                    }
+                    player.velocity.y = 0; // Stop vertical movement on collision
+                    collidedY = true;
+                } else {
+                    player.onGround = false;
+                }
+                camera.position.y = tempPos.y; // Update Y position if no collision or after adjustment
+
+
+                // Check X collision
+                tempPos = camera.position.clone(); // Reset tempPos
+                tempPos.x = nextPos.x;
+                if (!checkCollision(tempPos)) {
+                    camera.position.x = nextPos.x;
+                }
+
+                 // Check Z collision
+                 tempPos = camera.position.clone(); // Reset tempPos
+                 tempPos.z = nextPos.z;
+                 if (!checkCollision(tempPos)) {
+                     camera.position.z = nextPos.z;
+                 }
+
+
+                // Jump
+                if (keys['Space'] && player.onGround) {
+                    player.velocity.y = player.jumpVelocity;
+                    player.onGround = false;
+                }
+            }
+
+            renderer.render(scene, camera);
         }
-        
-        // Update last platform info for next iteration
-        lastPlatformX = lastPlatformX + lastPlatformWidth + actualGap;
-        lastPlatformY = platformY;
-        lastPlatformWidth = platformWidth;
-      } else {
-        // If we couldn't place a platform after multiple attempts, just move forward
-        // and create a safe platform at a reasonable height
-        const safeY = Math.min(450, Math.max(350, lastPlatformY));
-        const safeGap = Math.min(actualGap, jumpDistance * 0.65);
-        createPlatform(lastPlatformX + lastPlatformWidth + safeGap, safeY, platformWidth, 30);
-        
-        lastPlatformX = lastPlatformX + lastPlatformWidth + safeGap;
-        lastPlatformY = safeY;
-        lastPlatformWidth = platformWidth;
-      }
-    }
 
-    // Update the last generated position
-    gameState.lastGeneratedX = endX;
-  }
+        // --- Handle Window Resize ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
-  // Restart button
-  restartButton.addEventListener('click', initGame);
+        // --- Start Animation ---
+        animate();
 
-  // Start the game
-  initGame();
-</script>
-
+    </script>
 </body>
-</html> 
+</html>
